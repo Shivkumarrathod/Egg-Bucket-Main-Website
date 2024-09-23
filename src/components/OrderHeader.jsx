@@ -8,7 +8,7 @@ const Header = () => {
   const [nav, setNav] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false); // State to control cart visibility
   const [showAddressPopup, setShowAddressPopup] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("Patli Gali, Mota Bazzar, Jammu");
+  const [selectedAddress, setSelectedAddress] = useState("No Address selected");
   const [temporaryAddress, setTemporaryAddress] = useState(null);
 
   const handleNav = () => {
@@ -16,7 +16,7 @@ const Header = () => {
   };
 
   const toggleCart = () => {
-    setIsCartOpen(!isCartOpen); // Toggle the cart visibility
+    setIsCartOpen(!isCartOpen); 
   };
 
   const toggleAddressPopup = () => {
@@ -200,7 +200,7 @@ const Header = () => {
       </nav>
 
       {/* Cart Slide-in */}
-      <Cart isCartOpen={isCartOpen} toggleCart={toggleCart} />
+      <Cart  isCartOpen={isCartOpen} toggleCart={toggleCart} />
     </>
   );
 };
