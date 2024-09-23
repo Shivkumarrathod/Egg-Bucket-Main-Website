@@ -61,14 +61,8 @@ const ContactUs = () => {
             data-aos="fade-up"
             data-aos-delay="300"
           >
-            <a
-              href="https://wa.me/919353772016"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#25D366] hover:text-[#128C7E] transition-colors"
-            >
-              <FaWhatsapp className="text-5xl md:text-6xl text-[#f87709] mx-auto mb-4" />
-            </a>
+            <FaWhatsapp className="text-5xl md:text-6xl text-[#f87709] mx-auto mb-4" />
+
             <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
               Contact Us
             </h2>
