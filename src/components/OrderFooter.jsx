@@ -1,6 +1,12 @@
 import React from "react";
 import {Link} from "react-router-dom"
 
+import GooglePlayImage from "../assets/Images/googleplay.png"
+import MobileImage from "../assets/Images/mockupo.png"
+import companyLogo from "../assets/Images/logo.png"
+import Linkedin from "../assets/Images/linkedin.png"
+import Instagram from "../assets/Images/insta.png"
+
 const Footer = () => {
   return (
     <footer>
@@ -17,7 +23,7 @@ const Footer = () => {
               </div>
               <div className="flex flex-row items-center space-x-4 justify-center">
                 <img
-                  src="/src/assets/Images/logo.png"
+                  src={companyLogo}
                   alt="Egg Bucket"
                   className="h-[60px] w-[120px] md:h-[80px] md:w-[150px] inline-block mt-2"
                 />
@@ -26,7 +32,7 @@ const Footer = () => {
                   href="https://play.google.com/store/apps/details?id=com.eggbucket.dukaan"
                 >
                   <img
-                    src="/src/assets/Images/google play.png"
+                    src={GooglePlayImage}
                     alt="Google Play"
                     className="h-[40px] w-[120px] md:h-[50px] md:w-[150px] inline-block mt-2 cursor-pointer"
                   />
@@ -36,7 +42,7 @@ const Footer = () => {
 
             <div className=" hidden lg:block  lg:absolute lg:right-1  lg:mt-[300px] mr-9  flex justify-center">
               <img
-                src="/src/assets/Images/mockupo.png"
+                src={MobileImage}
                 alt="Mobile Mockup"
                 className="w-[300px] h-[320px] md:w-[480px] md:h-[520px] cursor-pointer contain"
               />
@@ -84,7 +90,7 @@ const Footer = () => {
             <div className="flex justify-center md:justify-start space-x-4 mt-4">
               <a href="https://www.instagram.com/egg.bucket/" target="_blank">
                 <img
-                  src="/src/assets/Images/insta.png"
+                  src={Instagram}
                   alt="Instagram"
                   className="h-10 w-10 cursor-pointer"
                 />
@@ -94,7 +100,7 @@ const Footer = () => {
                 target="_blank"
               >
                 <img
-                  src="/src/assets/Images/linkedin.png"
+                  src={Linkedin}
                   alt="LinkedIn"
                   className="h-10 w-10 cursor-pointer"
                 />
