@@ -56,7 +56,7 @@ const ContactUs = () => {
             </p>
           </div>
 
-          <div
+{/*           <div
             className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg"
             data-aos="fade-up"
             data-aos-delay="300"
@@ -69,7 +69,7 @@ const ContactUs = () => {
             <p className="text-sm md:text-base text-gray-600 mt-4">
               <span className="font-medium">Contact Person:</span> Rohit Wani
             </p>
-          </div>
+          </div> */}
 
           <div
             className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg"
