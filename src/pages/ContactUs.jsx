@@ -41,55 +41,43 @@ const ContactUs = () => {
         </section>
 
         {/* Contact Information */}
-        <section className="contact-info my-8 md:my-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 relative z-10">
-          <div
-            className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            <FaMapMarkerAlt className="text-[#f87709] text-3xl md:text-4xl mx-auto mb-4" />
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
-              Our Office
-            </h2>
-            <p className="text-sm md:text-base text-gray-600 mt-4">
-              ITI Layout, HSR, Bengaluru-560068
-            </p>
-          </div>
+        <section className="contact-info my-8 md:my-16 flex justify-center ">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
+            <div
+              className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
+              <FaMapMarkerAlt className="text-[#f87709] text-3xl md:text-4xl mx-auto mb-4" />
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
+                Our Office
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 mt-4">
+                ITI Layout, HSR, Bengaluru-560068
+              </p>
+            </div>
 
-{/*           <div
-            className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg"
-            data-aos="fade-up"
-            data-aos-delay="300"
-          >
-            <FaWhatsapp className="text-5xl md:text-6xl text-[#f87709] mx-auto mb-4" />
-
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
-              Contact Us
-            </h2>
-            <p className="text-sm md:text-base text-gray-600 mt-4">
-              <span className="font-medium">Contact Person:</span> Rohit Wani
-            </p>
-          </div> */}
-
-          <div
-            className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg"
-            data-aos="fade-up"
-            data-aos-delay="400"
-          >
-            <FaEnvelope className="text-[#f87709] text-3xl md:text-4xl mx-auto mb-4" />
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
-              Email Us
-            </h2>
-            <p className="text-sm md:text-base text-gray-600 mt-4 break-words">
-              <a
-                href="mailto:kacklewallsnutrition@gmail.com"
-                className="text-[#f87709] hover:text-yellow-800 transition-colors"
-              >
-                support@eggbucket.in
-              </a>
-            </p>
+            <div
+              className="contact-card p-6 md:p-8 bg-white shadow-lg border border-[#f87709] rounded-lg text-center transition-transform transform hover:-translate-y-2 hover:shadow-lg z-10"
+              data-aos="fade-up"
+              data-aos-delay="400"
+            >
+              <FaEnvelope className="text-[#f87709] text-3xl md:text-4xl mx-auto mb-4" />
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
+                Email Us
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 mt-4 break-words">
+                <a
+                  href="mailto:kacklewallsnutrition@gmail.com"
+                  className="text-[#f87709] hover:text-yellow-800 transition-colors"
+                >
+                  support@eggbucket.in
+                </a>
+              </p>
+            </div>
           </div>
         </section>
+
 
         {/* Contact Form */}
         <section
