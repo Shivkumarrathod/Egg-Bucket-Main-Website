@@ -84,8 +84,8 @@ const LandingPage = ({ addToCart }) => {
               <div className="flex flex-col md:flex-row p-6">
                 <img src={product.image} alt={product.name} className="w-full md:w-1/2 h-36 object-contain mb-4" />
                 <div className="w-full md:w-1/2 pl-4">
-                  <span className="text-2xl font-bold text-blue-900 mt-4 block">Rs {product.price.toFixed(2)}</span>
-                  <span className="text-md text-gray-500 line-through mt-2 block">Rs {product.originalPrice.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-blue-900 mt-4 block">₹ {product.price.toFixed(2)}</span>
+                  <span className="text-md text-gray-500 line-through mt-2 block">₹ {product.originalPrice.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex flex-col bg-gradient-to-r from-yellow-300 to-orange-300 p-4 rounded-2xl">
@@ -112,20 +112,30 @@ const LandingPage = ({ addToCart }) => {
 
         {/* Reviews Section */}
         <section className="py-16 bg-white mt-16">
-          <div className="container mx-auto">
-            <h2 className="text-5xl font-extrabold text-orange-500 mb-4">What our customers are saying</h2>
-            <p className="text-lg text-gray-700">Don't just take our word for it. See what our customers have to say about EggBucket!</p>
-            <div className="flex flex-wrap mt-8">
-              {reviews.map((review) => (
-                <div key={review.id} className="w-full md:w-1/3 px-4 mb-8">
+          <div className="container mx-auto px-4">
+            {/* Left-aligned heading and subheading */}
+            <div className="mb-12 text-left">
+              <h2 className="text-5xl font-extrabold text-orange-500 mb-4">What our customers are saying</h2>
+              <p className="text-lg text-gray-700">Don't just take our word for it. See what our customers have to say about EggBucket!</p>
+            </div>
+
+            {/* Review cards */}
+            <div className="flex flex-wrap -mx-4">
+              {reviews.map((review, index) => (
+                <div 
+                  key={review.id} 
+                  className={`w-full md:w-1/3 px-4 mb-8 ${
+                    index >= 3 ? 'md:translate-x-48' : '' 
+                  }`}
+                >
                   <div className="bg-gray-100 p-6 rounded-3xl h-full">
                     <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white mr-3">
+                      <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
                         {review.name[0]}
                       </div>
                       <h4 className="text-orange-500 font-bold">{review.name}</h4>
                     </div>
-                    <p className="text-gray-800">{review.text}</p>
+                    <p className="text-gray-800 text-sm">{review.text}</p>
                   </div>
                 </div>
               ))}
