@@ -1,25 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "../components/OrderHeader.jsx";
-import Login from "../components/Login.jsx";
-import OrderFooter from "../components/OrderFooter.jsx";
-// import DashBoard from "./";
 import LandingPage from "../components/LandingPage.jsx";
 import DashBoard from "./DashBoard.jsx";
+import Cart from "../components/Cart.jsx"; // Import Cart component
 
 export default function Order() {
-  return (
-    <>
-      <Header />
+    const [cartItems, setCartItems] = useState([]);
+    const [isCartOpen, setIsCartOpen] = useState(false); // State for cart visibility
 
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        {/* <Route path="dashboard/*" element={DashBoard} /> */}
-        <Route path="/account/*" element={<DashBoard />} />
-      </Routes>
+    const addToCart = (product) => {
+        setCartItems((prevItems) => {
+            const existingProduct = prevItems.find(item => item.id === product.id);
+            if (existingProduct) {
+                return prevItems.map(item =>
+                    item.id === product.id ? { ...item, quantity: item.quantity + product.quantity } : item
+                );
+            }
+            return [...prevItems, { ...product, quantity: product.quantity }];
+        });
+    };
 
-      <OrderFooter />
-    </>
-  );
+    const removeFromCart = (id) => {
+        setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    };
+
+    const toggleCart = () => {
+        setIsCartOpen(prev => !prev); // Toggle cart visibility
+    };
+
+    return (
+        <>
+            <Header toggleCart={toggleCart} cartItems={cartItems} addToCart={addToCart} removeFromCart={removeFromCart} />
+
+            <Routes>
+                <Route
+                    path="/"
+                    element={<LandingPage addToCart={addToCart} />}
+                />
+                <Route path="/account/*" element={<DashBoard />} />
+            </Routes>
+
+            {/* Conditional rendering of Cart */}
+            {isCartOpen && <Cart cartItems={cartItems} removeFromCart={removeFromCart} toggleCart={toggleCart} addToCart={addToCart} />}
+        </>
+    );
 }
