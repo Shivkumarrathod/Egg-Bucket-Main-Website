@@ -69,7 +69,7 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
     if (!selectedAddress) {
       setShowSelectAlert(true);
     } else {
-      setSuccessMessage(`Order placed successfully! Delivering to: ${selectedAddress}`);
+      setSuccessMessage(`Order placed successfully! Delivering to: ₹{selectedAddress}`);
     }
   };
 
@@ -105,7 +105,7 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
                   <img src={item.image} alt={item.name} className="w-16 h-16 mr-4" />
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>
-                    <p>${item.price.toFixed(2)} x {localQuantities[item.id]}</p>
+                    <p>₹{item.price.toFixed(2)} x {localQuantities[item.id]}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
@@ -135,15 +135,15 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
           <div className="mt-4">
             <div className="flex justify-between">
               <p className="font-semibold">Subtotal:</p>
-              <p className="font-semibold">${subtotal.toFixed(2)}</p>
+              <p className="font-semibold">₹{subtotal.toFixed(2)}</p>
             </div>
             <div className="flex justify-between">
               <p className="font-semibold">Shipping:</p>
-              <p className="font-semibold">${shipping.toFixed(2)}</p>
+              <p className="font-semibold">₹{shipping.toFixed(2)}</p>
             </div>
             <div className="flex justify-between mt-2">
               <p className="font-bold">Total:</p>
-              <p className="font-bold">${totalPrice.toFixed(2)}</p>
+              <p className="font-bold">₹{totalPrice.toFixed(2)}</p>
             </div>
           </div>
           <div className="relative mt-4">
