@@ -3,8 +3,7 @@ import { auth } from "../firebase.config";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import EggBucketImage from '../assets/Images/EggBucket.png';
 import logo from '../assets/Images/logo.png';
-import { Navigate,useNavigate } from "react-router-dom";
-
+import { Navigate, useNavigate } from "react-router-dom";
 
 function Login() {
   const [phone, setPhone] = useState("");
@@ -37,8 +36,8 @@ function Login() {
         resolve();
       }
     });
-  }; 
-  
+  };
+
   const handleLogin = () => {
     onCaptchVerify()
       .then(() => {
@@ -50,7 +49,7 @@ function Login() {
       })
       .then((confirmationResult) => {
         window.confirmationResult = confirmationResult;
-        setConfirmationResult(confirmationResult); 
+        setConfirmationResult(confirmationResult);
         setOtpSent(true);
         setMessage("OTP sent successfully!");
       })
@@ -62,12 +61,12 @@ function Login() {
 
   const setIdToken = async () => {
     const currentUser = auth.currentUser;
- 
+
     if (currentUser) {
       try {
-        const token = await currentUser.getIdToken(false); 
-        localStorage.setItem("token", token); 
-        navigate("/order/account")
+        const token = await currentUser.getIdToken(false);
+        localStorage.setItem("token", token);
+        navigate("/order/account");
       } catch (error) {
         console.error("Error fetching ID token:", error);
       }
@@ -75,7 +74,6 @@ function Login() {
       console.error("Couldn't verify user");
     }
   };
-  
 
   const verifyOtp = () => {
     if (confirmationResult) {
@@ -90,7 +88,7 @@ function Login() {
           setMessage("Incorrect OTP, please try again.");
         });
     } else {
-      setMessage("Please request the OTP first."); 
+      setMessage("Please request the OTP first.");
     }
   };
 

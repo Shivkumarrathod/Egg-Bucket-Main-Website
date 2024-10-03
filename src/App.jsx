@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Login from "./components/Login";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Importing Pages
@@ -17,8 +18,6 @@ import Time from "./pages/Time";
 import Ourfounders from "./pages/OurFounders";
 import FAQ from "./pages/FAQ";
 import Order from "./pages/Order";
-import { SiDotenv } from "react-icons/si";
-import { GrConfigure } from "react-icons/gr";
 
 const App = () => {
   const location = useLocation();
@@ -36,7 +35,8 @@ const App = () => {
         <Route path="/timeline" element={<Time />} />
         <Route path="/ourfounders" element={<Ourfounders />} />
         <Route path="/faq" element={<FAQ />} />
-        <Route path="/order/*" element={<Order />} />
+        <Route path="/order" element={<Order />} />
+        <Route path="/order/login" element={<Login />} />
       </Routes>
 
       {!isB2CPage && <Footer />}
