@@ -13,7 +13,7 @@ export default function DashBoard() {
     if (!token) {
       navigate("/order/login");
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <Account>

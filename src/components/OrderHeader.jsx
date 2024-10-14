@@ -1,8 +1,10 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import bglogo from "../assets/Images/logo.png";
-import { AiOutlineShoppingCart, AiOutlineMenu, AiOutlineClose, AiOutlineDown, AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineShoppingCart, AiOutlineMenu, AiOutlineClose, AiOutlineDown, AiOutlinePlus, AiOutlineUser } from "react-icons/ai";
 import Cart from "./Cart";
+import { useSelector } from 'react-redux';
 
 const Header = ({ cartItems, addToCart, removeFromCart }) => {
   const [nav, setNav] = useState(false);
@@ -10,13 +12,14 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
   const [showAddressPopup, setShowAddressPopup] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState("Patli Gali, Mota Bazzar, Jammu");
   const [temporaryAddress, setTemporaryAddress] = useState(null);
+  const { userData } = useSelector((state) => state.user);
 
   const handleNav = () => setNav(!nav);
   const toggleCart = () => setIsCartOpen(!isCartOpen);
   const toggleAddressPopup = () => setShowAddressPopup(!showAddressPopup);
 
   const handleAddressSelect = (address) => setTemporaryAddress(address);
-  
+
   const saveSelectedAddress = () => {
     if (temporaryAddress) {
       setSelectedAddress(temporaryAddress);
@@ -39,7 +42,9 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
             <div className="md:hidden flex items-center space-x-4">
               <AiOutlineDown className="text-gray-600 hover:text-orange-500 text-2xl" onClick={toggleAddressPopup} />
               <AiOutlineShoppingCart size={25} className="cursor-pointer text-gray-600 hover:text-orange-500 transition-transform transform hover:scale-110" onClick={toggleCart} />
-              <Link className="bg-orange-500 text-white px-3 py-2 rounded-md hover:bg-orange-600 transition-transform duration-300 transform hover:scale-105">Login</Link>
+              <Link className="text-gray-600 hover:text-orange-500 text-2xl" to="/order/account/orders">
+                <AiOutlineUser /> {/* Profile icon */}
+              </Link>
               {!nav ? (
                 <AiOutlineMenu size={25} className="cursor-pointer transition-transform transform hover:scale-110" onClick={handleNav} />
               ) : (
@@ -49,8 +54,10 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
           </div>
 
           <ul className="hidden md:flex lg:space-x-8 md:space-x-4 text-gray-800 left-[150px] absolute">
-            <li className="relative lg:text-lg md:text-base hover:text-orange-500 cursor-pointer transition-transform transform hover:scale-105 group">About Us<span className="absolute bottom-0 left-0 w-0 h-1 bg-orange-500 transition-all duration-1000 group-hover:w-full"></span></li>
-            <li className="relative lg:text-lg md:text-base hover:text-orange-500 cursor-pointer transition-transform transform hover:scale-105 group">Subscribe<span className="absolute bottom-0 left-0 w-0 h-1 bg-orange-500 transition-all duration-1000 group-hover:w-full"></span></li>
+            <li className="relative lg:text-lg md:text-base hover:text-orange-500 cursor-pointer transition-transform transform hover:scale-105 group">
+              <Link to="/order/">Home</Link>
+              <span className="absolute bottom-0 left-0 w-0 h-1 bg-orange-500 transition-all duration-1000 group-hover:w-full"></span>
+            </li>
           </ul>
 
           <div className="absolute lg:right-[200px] md:right-[170px]">
@@ -62,9 +69,9 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
               <div className="md:absolute mt-[70px] md:mt-9 w-[300px] md:w-[370px] md:right-[150px] bg-white p-6 rounded-lg shadow-lg z-20">
                 <h2 className="text-lg md:text-xl font-bold mb-4">Select an Address</h2>
                 <ul className="space-y-3">
-                  {["Patli Gali, Mota Bazzar, Jammu", "Slim Street, Fat Market, Bengaluru"].map((address, index) => (
-                    <li key={index} onClick={() => handleAddressSelect(address)} className={`cursor-pointer p-2 rounded-md transition-all duration-300 md:text-lg text-sm transform ${temporaryAddress === address ? "border-2 border-orange-500 text-gray-800 scale-105" : "bg-gray-200 text-gray-800 hover:border-orange-400 hover:border-2"}`} style={{ backgroundColor: temporaryAddress === address ? "white" : "" }}>
-                      {address}
+                  {userData?.addresses?.map((address, index) => (
+                    <li key={index} onClick={() => handleAddressSelect(address.fullAddress)} className={`cursor-pointer p-2 rounded-md transition-all duration-300 md:text-lg text-sm transform ${temporaryAddress === address.fullAddress ? "border-2 border-orange-500 text-gray-800 scale-105" : "bg-gray-200 text-gray-800 hover:border-orange-400 hover:border-2"}`} style={{ backgroundColor: temporaryAddress === address.fullAddress ? "white" : "" }}>
+                      {`${address.fullAddress.flatNo}, ${address.fullAddress.area}, ${address.fullAddress.city}, ${address.fullAddress.state}, ${address.fullAddress.country}-${address.fullAddress.zipCode}`}
                     </li>
                   ))}
                 </ul>
@@ -83,23 +90,27 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
 
           <div className="hidden md:flex items-center md:space-x-3 lg:space-x-6 mx-3">
             <AiOutlineShoppingCart size={25} className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110" onClick={toggleCart} />
-            <Link className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-transform duration-300 transform hover:scale-105" to="/order/account/orders">Login</Link>
+            <Link className="text-gray-800 hover:text-orange-500 text-2xl" to="/order/account/orders">
+              <AiOutlineUser className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110" />{" "}
+              {/* Profile icon */}
+            </Link>
           </div>
         </div>
 
         <div className={`fixed top-16 left-0 right-0 bg-white p-6 my-4 text-center transition-transform duration-300 ease-in-out transform rounded-lg shadow-lg ${nav ? "translate-x-0" : "-translate-x-full"} md:hidden`}>
-          <div className="p-4 text-left">
-            <ul className="space-y-4">
-              <li onClick={toggleCart} className="text-lg cursor-pointer hover:text-orange-500">Cart</li>
-              <li className="text-lg cursor-pointer hover:text-orange-500" onClick={() => alert("Functionality coming soon!")}>About Us</li>
-              <li className="text-lg cursor-pointer hover:text-orange-500" onClick={() => alert("Functionality coming soon!")}>Subscribe</li>
-              <li className="text-lg cursor-pointer hover:text-orange-500" onClick={() => alert("Functionality coming soon!")}>Login</li>
+          <div className="p-8 bg-orange-500 rounded-lg">
+            <ul className="text-white space-y-6 text-lg">
+              <li className="hover:text-gray-300 transition-colors duration-300 cursor-pointer">
+                <Link to="/order/">Home</Link>
+              </li>
+              <li className="hover:text-gray-300 transition-colors duration-300 cursor-pointer">
+                Terms and Conditions
+              </li>
             </ul>
           </div>
         </div>
       </nav>
-      {/* {isCartOpen && <Cart cartItems={cartItems} addToCart={addToCart} removeFromCart={removeFromCart} toggleCart={toggleCart} />} */}
-      {isCartOpen && <Cart cartItems={cartItems} removeFromCart={removeFromCart} toggleCart={toggleCart} addToCart={addToCart}  />}
+      {isCartOpen && <Cart cartItems={cartItems} removeFromCart={removeFromCart} toggleCart={toggleCart} addToCart={addToCart} />}
     </>
   );
 };

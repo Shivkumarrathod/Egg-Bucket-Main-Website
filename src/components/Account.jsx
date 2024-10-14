@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FaShoppingCart, FaUser, FaMapMarkerAlt, FaSignOutAlt, FaArrowLeft } from 'react-icons/fa';
 import { MdKeyboardArrowRight } from 'react-icons/md';
@@ -6,8 +5,35 @@ import profile from "../assets/Images/profile.png";
 import Orders from './OrderStatus';
 import Profile from './Profile';
 import Addresses from './Address';
+import { useSelector, useDispatch } from "react-redux";
 
-const Account = () => {
+import { fetchUserData } from "../redux/userSlice";
+
+import { auth } from "../firebase.config"; 
+
+import { useNavigate } from 'react-router-dom';
+
+function Account() {
+  const dispatch = useDispatch();
+  const navigate=useNavigate();
+  const { userData, loading, error } = useSelector((state) => state.user);
+
+  // Fetch authenticated user's phone number from Firebase Auth
+  useEffect(() => {
+    const currentUser = auth.currentUser;
+    console.log("Current Authenticated User:", currentUser);
+    if (currentUser && currentUser.phoneNumber) {
+
+      const phoneNumber = currentUser.phoneNumber;
+     
+      dispatch(fetchUserData(phoneNumber));
+  
+    }else {
+      console.log("No user is currently authenticated or no phone number found.");
+    }
+  }, [dispatch]);
+  
+   
   const [isSidebarVisible, setSidebarVisible] = useState(true); 
   const [selectedMenuItem, setSelectedMenuItem] = useState('orders');
   const [currentPageName, setCurrentPageName] = useState('Orders');
@@ -19,7 +45,23 @@ const Account = () => {
       setSidebarVisible(false); 
     }
   };
-
+  const handleLogout = () => {
+    auth.signOut()
+      .then(() => {
+        // Clear specific items from local storage
+        localStorage.removeItem("token"); // Remove token
+        localStorage.removeItem("customerName"); // Remove customer name if stored
+        localStorage.removeItem("outletId"); // Remove outlet ID if stored
+        localStorage.removeItem("deliveryPartnerId"); // Remove delivery partner ID if stored
+        
+        // Navigate to login page
+        navigate('/order/login');
+      })
+      .catch((error) => {
+        console.error("Error during logout:", error);
+      });
+  };
+  
   const renderContent = () => {
     switch (selectedMenuItem) {
       case 'orders':
@@ -32,16 +74,25 @@ const Account = () => {
         return null;
     }
   };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
+    <div className="account">
+    {userData?(
     <div className="flex min-h-screen mt-16 lg:mt-20 bg-gray-100">
       {/* Sidebar */}
       <div className={`w-full lg:w-1/4 bg-white p-6 shadow-lg lg:block ${isSidebarVisible ? 'block' : 'hidden'}`}>
         <div className="flex flex-col items-center space-x-4">
           <img src={profile} alt="Profile" className="bg-gray-200 rounded-full w-24 h-24 object-cover" />
           <div className="flex flex-col items-start">
-            <h2 className="text-xl mt-4 font-bold text-center">Welcome, Name</h2>
-            <p className="text-gray-600 text-center">+91 9999999999</p>
+            <h2 className="text-xl mt-4 font-bold text-center">Welcome, {userData.name}</h2>
+            <p className="text-gray-600 text-center">+{userData.phone}</p>
           </div>
         </div>
 
@@ -79,7 +130,7 @@ const Account = () => {
           </div>
           <div
             className="menu-item p-3 cursor-pointer flex justify-between items-center border-2 border-gray-300 bg-gray-100"
-            onClick={() => console.log('Navigating to logout')} 
+            onClick={handleLogout} 
           >
             <span className="flex items-center">
               <FaSignOutAlt className="mr-2" />
@@ -101,8 +152,13 @@ const Account = () => {
         {renderContent()}
       </div>
     </div>
+  ):( <p>No user data available</p>
+  )}
+  </div>
   );
 };
 
 export default Account;
+
+
 

@@ -1,38 +1,24 @@
-import React, { useState } from 'react';
-import { FiChevronDown } from 'react-icons/fi';
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { FiChevronDown } from "react-icons/fi";
 
-// Alert Component
-const Alert = ({ message, onClose }) => {
-  return (
-    <div className="fixed top-0 left-0 right-0 mt-20 mx-auto w-96 bg-orange-500 text-white p-4 rounded-md shadow-lg z-50">
-      <p>{message}</p>
-      <button 
-        onClick={onClose} 
-        className="mt-2 bg-red-600 hover:bg-red-700 text-white py-1 px-2 rounded"
-      >
-        Close
-      </button>
-    </div>
-  );
-};
-
-// Cart Component
 const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
   const [selectedAddress, setSelectedAddress] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showSelectAlert, setShowSelectAlert] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  
-  const addresses = [
-    "123 Main St, Springfield, IL",
-    "456 Elm St, Springfield, IL",
-    "789 Maple Avenue, Springfield, IL",
-    "100 Oak Street, Springfield, IL",
-    "555 Birch Lane, Springfield, IL",
-    "777 Pine Road, Springfield, IL",
-  ];
+  const [userToken, setUserToken] = useState(null);
 
-  // Local state to manage quantity for display
+  const { userData } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setUserToken(token);
+  }, []);
+
   const [localQuantities, setLocalQuantities] = useState(
     cartItems.reduce((acc, item) => {
       acc[item.id] = item.quantity;
@@ -40,14 +26,12 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
     }, {})
   );
 
-  // Increment quantity
   const incrementQuantity = (product) => {
     const updatedQuantity = localQuantities[product.id] + 1;
     setLocalQuantities({ ...localQuantities, [product.id]: updatedQuantity });
     addToCart({ ...product, quantity: updatedQuantity });
   };
 
-  // Decrement quantity
   const decrementQuantity = (product) => {
     if (localQuantities[product.id] === 1) {
       removeFromCart(product.id);
@@ -60,27 +44,71 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
     }
   };
 
-  const subtotal = cartItems.reduce((acc, product) => acc + product.price * localQuantities[product.id], 0);
-  const shipping = 0; // Assuming free shipping for now
+  const subtotal = cartItems.reduce(
+    (acc, product) => acc + product.price * localQuantities[product.id], 0
+  );
+  const shipping = 0;
   const totalPrice = subtotal + shipping;
 
-  // Place Order Handler
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedAddress) {
       setShowSelectAlert(true);
-    } else {
-      setSuccessMessage(`Order placed successfully! Delivering to: ₹{selectedAddress}`);
+      return;
     }
+
+    const customer = userData;
+    if (!customer) {
+      console.error('No customer data found in Redux');
+      return;
+    }
+
+    const products = cartItems.reduce((acc, item) => {
+      acc[item.id] = localQuantities[item.id];
+      return acc;
+    }, {});
+
+    const orderPayload = {
+      address: selectedAddress,
+      amount: totalPrice,
+      products,
+      outletId: "OP_1",
+      customerName: customer.name || "Anonymous",
+      customerId: customer.phone,
+      deliveryPartnerId: "partner789",
+    };
+
+    try {
+      const response = await axios.post(
+        'https://b2c-49u4.onrender.com/api/v1/order/order',
+        orderPayload
+      );
+
+      if (response.status === 201 && response.data.message === "Order created and customer totalExpenditure updated") {
+        const city = selectedAddress.city || "your location";
+        setSuccessMessage(`Order placed successfully! Delivering to: ${city}`);
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      setSuccessMessage('Failed to place order. Please try again.');
+    }
+
+    setTimeout(() => {
+      clearCart();
+      setSuccessMessage("Order placed successfully!");
+    }, 1000);
   };
 
-  // Close Alerts
-  const closeSelectAlert = () => {
-    setShowSelectAlert(false);
+  const clearCart = () => {
+    cartItems.forEach(item => removeFromCart(item.id));
+    setLocalQuantities({});
+  };
+
+  const handleLoginRedirect = () => {
+    navigate('/order/login');
   };
 
   const handleToggleCart = () => {
     toggleCart();
-    // No reset for successMessage, let it persist
   };
 
   return (
@@ -109,29 +137,21 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button 
-                    className="bg-gray-200 px-2 py-1" 
-                    onClick={() => decrementQuantity(item)} 
-                  >
+                  <button className="bg-gray-200 px-2 py-1" onClick={() => decrementQuantity(item)}>
                     -
                   </button>
                   <span className="px-2 py-1 font-bold">{localQuantities[item.id]}</span>
-                  <button 
-                    className="bg-gray-200 px-2 py-1" 
-                    onClick={() => incrementQuantity(item)}
-                  >
+                  <button className="bg-gray-200 px-2 py-1" onClick={() => incrementQuantity(item)}>
                     +
                   </button>
-                  <button 
-                    className="bg-red-500 text-white px-2 py-1" 
-                    onClick={() => removeFromCart(item.id)}
-                  >
+                  <button className="bg-red-500 text-white px-2 py-1" onClick={() => removeFromCart(item.id)}>
                     Remove
                   </button>
                 </div>
               </li>
             ))}
           </ul>
+
           <div className="mt-4">
             <div className="flex justify-between">
               <p className="font-semibold">Subtotal:</p>
@@ -146,6 +166,7 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
               <p className="font-bold">₹{totalPrice.toFixed(2)}</p>
             </div>
           </div>
+
           <div className="relative mt-4">
             <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex justify-between items-center cursor-pointer border p-2 rounded-md">
               <span>Select Address</span>
@@ -153,58 +174,55 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
             </div>
             {isDropdownOpen && (
               <ul className="absolute bg-white border rounded-md shadow-lg mt-1 w-full z-30">
-                {addresses.map((address, index) => (
+                {userData?.addresses?.map((address, index) => (
                   <li 
                     key={index} 
                     onClick={() => {
-                      setSelectedAddress(address);
+                      setSelectedAddress(address.fullAddress);
                       setIsDropdownOpen(false);
                     }} 
                     className="p-2 cursor-pointer hover:bg-orange-200"
                   >
-                    {address}
+                    {`${address.fullAddress.flatNo}, ${address.fullAddress.area}, ${address.fullAddress.city}, ${address.fullAddress.state}, ${address.fullAddress.country}-${address.fullAddress.zipCode}`}
                   </li>
                 ))}
               </ul>
             )}
             {selectedAddress && (
               <p className="mt-2 overflow-x-auto whitespace-nowrap">
-                Delivery to: {selectedAddress}
+                Delivery to: 
+                {`${selectedAddress.flatNo}, ${selectedAddress.area}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipCode}, ${selectedAddress.country}`}
               </p>
             )}
           </div>
+
           <div className="mt-4">
-            <button 
-              onClick={handlePlaceOrder} 
-              className="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
-            >
-              Place Order
-            </button>
+            {userToken ? (
+              <button onClick={handlePlaceOrder} className="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600">
+                Place Order
+              </button>
+            ) : (
+              <button onClick={handleLoginRedirect} className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">
+                Login
+              </button>
+            )}
           </div>
-          
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mt-4 p-2 bg-green-500 text-white rounded-md">
-              {successMessage}
-            </div>
-          )}
         </>
       )}
 
-      {/* Show Select Alert */}
+      {successMessage && (
+        <div className="mt-4 p-2 bg-green-500 text-white rounded-md">
+          {successMessage}
+        </div>
+      )}
+
       {showSelectAlert && (
-        <Alert 
-          message={`Please select an address before placing the order!`} 
-          onClose={closeSelectAlert} 
-        />
+        <div className="mt-4 p-2 bg-red-500 text-white rounded-md">
+          Please select a delivery address
+        </div>
       )}
     </div>
   );
 };
 
 export default Cart;
-
-
-
-
-

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import pc30 from '../assets/Images/30pc.svg';
@@ -27,6 +26,7 @@ const productsData = [
 
 const LandingPage = ({ addToCart }) => {
   const [quantities, setQuantities] = useState(productsData.map(() => 1));
+  const [popupVisible, setPopupVisible] = useState(false); // Popup visibility state
 
   const handleIncrement = (index) => {
     setQuantities(prev => {
@@ -49,10 +49,23 @@ const LandingPage = ({ addToCart }) => {
   const handleAddToCart = (product, index) => {
     const quantity = quantities[index];
     addToCart({ ...product, quantity });
+
+    // Show popup and hide after 1 second
+    setPopupVisible(true);
+    setTimeout(() => {
+      setPopupVisible(false);
+    }, 1000);
   };
 
   return (
-    <div className="bg-white min-h-screen font-poppins mt-12">
+    <div className="bg-white min-h-screen font-poppins mt-12 relative">
+      {/* Popup notification */}
+      {popupVisible && (
+        <div className="fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-md shadow-md z-50 transition-opacity duration-500">
+          Product added to cart!
+        </div>
+      )}
+
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="mb-12 relative bg-cover bg-no-repeat bg-center" style={{ backgroundImage: `url(${bg})` }}>
@@ -91,16 +104,7 @@ const LandingPage = ({ addToCart }) => {
               <div className="flex flex-col bg-gradient-to-r from-yellow-300 to-orange-300 p-4 rounded-2xl">
                 <h4 className="text-lg font-bold text-center">{product.name}</h4>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center bg-white rounded-xl flex-grow mr-4">
-                    <button className="flex p-2 justify-center items-center text-orange-500 hover:bg-orange-100 rounded-xl transition-colors" onClick={() => handleDecrement(index)}>
-                      <Minus size={20} />
-                    </button>
-                    <span className="flex-1 px-4 font-bold text-xl text-orange-500 text-center">{quantities[index]}</span>
-                    <button className="flex p-2 justify-center items-center text-orange-500 hover:bg-orange-100 rounded-xl transition-colors" onClick={() => handleIncrement(index)}>
-                      <Plus size={20} />
-                    </button>
-                  </div>
-                  <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl flex items-center transition-colors" onClick={() => handleAddToCart(product, index)}>
+                  <button className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl flex justify-center items-center transition-colors" onClick={() => handleAddToCart(product, index)}>
                     <ShoppingCart size={20} className="mr-2" />
                     Add To Cart
                   </button>
@@ -122,10 +126,10 @@ const LandingPage = ({ addToCart }) => {
             {/* Review cards */}
             <div className="flex flex-wrap -mx-4">
               {reviews.map((review, index) => (
-                <div 
-                  key={review.id} 
+                <div
+                  key={review.id}
                   className={`w-full md:w-1/3 px-4 mb-8 ${
-                    index >= 3 ? 'md:translate-x-48' : '' 
+                    index >= 3 ? 'md:translate-x-48' : ''
                   }`}
                 >
                   <div className="bg-gray-100 p-6 rounded-3xl h-full">

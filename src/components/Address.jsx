@@ -1,41 +1,53 @@
-
 import React, { useState } from 'react';
-import { FaEdit, FaTrashAlt, FaMapMarkerAlt } from 'react-icons/fa';
-import EditAddress from './EditAddress';
+import { FaTrashAlt, FaMapMarkerAlt } from 'react-icons/fa';
 import AddAddress from './AddAddress';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchUserData } from '../redux/userSlice';
 
 const Addresses = () => {
-  const addresses = [
-    { id: 1, text: '123 Main St, Springfield, IL' },
-    { id: 2, text: '456 Elm St, Springfield, IL' },
-    { id: 3, text: '789 Oak St, Springfield, IL' },
-    { id: 4, text: '101 Pine St, Springfield, IL' },
-    { id: 5, text: '202 Maple St, Springfield, IL' },
-    { id: 6, text: '303 Birch St, Springfield, IL' },
-    { id: 6, text: '303 Birch St, Springfield, IL' },
+  const dispatch = useDispatch();
+  const { userData } = useSelector((state) => state.user); // Call useSelector at the top level
+  const addresses = userData?.addresses || [];
 
-  ];
-  
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState(null);
-  const [isAdding, setIsAdding] = useState(false); // State for Add Address modal
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleEditClick = (address) => {
-    setSelectedAddress(address);
-    setIsEditing(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsEditing(false);
-    setSelectedAddress(null);
+  const handleAddClick = () => {
+    setIsAdding(true);
   };
 
   const handleAddCloseModal = () => {
     setIsAdding(false);
   };
 
-  const handleAddClick = () => {
-    setIsAdding(true);
+  const handleDeleteAddress = async (addressId, addressIndex) => {
+    const phoneNumber = userData.phone;
+    // Remove the address with the provided addressId from the user's address list
+    const updatedAddresses = addresses.filter((address) => address.id !== addressId);
+
+    const updatedUserData = {
+      addresses: JSON.stringify(updatedAddresses), // Send the updated addresses list
+      removeAddr: addressIndex // Use the index of the address
+    };
+
+    try {
+      // Use PATCH method to update the user's address list
+      const response = await fetch(`https://b2c-49u4.onrender.com/api/v1/customer/user/${phoneNumber}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedUserData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update address list');
+      }
+
+      // Fetch updated user data after deletion
+      dispatch(fetchUserData(phoneNumber));
+    } catch (error) {
+      console.error("Error updating address list:", error);
+    }
   };
 
   return (
@@ -45,22 +57,19 @@ const Addresses = () => {
           <p className="text-black text-center text-lg">No addresses available</p>
         ) : (
           <div className="space-y-4">
-            {addresses.map((address) => (
+            {addresses.map((address, index) => (
               <div
-                key={address.id}
+                key={index}
                 className="bg-gray-50 border-black-100 border-2 rounded-lg p-4 flex justify-between items-center shadow-sm hover:bg-gray-100"
               >
                 <div className="flex items-center space-x-2">
                   <FaMapMarkerAlt className="text-xl text-gray-600" />
                   <div>
-                    <span className="text-lg font-semibold">{address.text}</span>
+                    <span className="text-lg font-semibold">{`${address.fullAddress.flatNo}, ${address.fullAddress.area}, ${address.fullAddress.city}, ${address.fullAddress.state}, ${address.fullAddress.country}-${address.fullAddress.zipCode}`}</span>
                   </div>
                 </div>
                 <div className="flex items-center sm:space-y-0 space-y-2 sm:space-x-2 sm:flex-row flex-col w-full sm:w-auto">
-                  <button onClick={() => handleEditClick(address)} className="flex justify-center w-full sm:w-auto items-center bg-white  text-black py-1 px-2 rounded hover:bg-gray-300">
-                    <FaEdit className="mr-1 text-blue-600" /> Edit
-                  </button>
-                  <button className="flex justify-center w-full sm:w-auto items-center bg-white  text-black py-1 px-2 rounded hover:bg-gray-300">
+                  <button onClick={() => handleDeleteAddress(address.id, index)} className="flex justify-center w-full sm:w-auto items-center bg-white text-black py-1 px-2 rounded hover:bg-gray-300">
                     <FaTrashAlt className="mr-1 text-red-600" /> Delete
                   </button>
                 </div>
@@ -76,17 +85,8 @@ const Addresses = () => {
         </button>
       </div>
 
-      {isEditing && (
-        <EditAddress
-          address={selectedAddress}
-          onClose={handleCloseModal}
-        />
-      )}
-
       {isAdding && (
-        <AddAddress
-          onClose={handleAddCloseModal}
-        />
+        <AddAddress onClose={handleAddCloseModal} />
       )}
     </div>
   );

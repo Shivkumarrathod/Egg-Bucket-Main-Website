@@ -1,20 +1,42 @@
-
 import React, { useState, useEffect } from 'react';
 
 const EditProfile = ({ profile, onProfileUpdate, onCancel }) => {
   const [formData, setFormData] = useState(profile);
+  const [loading, setLoading] = useState(false);  // New state to track loading
 
+  // UseEffect to update formData if profile changes
   useEffect(() => {
-    setFormData(profile); // Sync form data with profile prop
+    setFormData(profile);
   }, [profile]);
 
+  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onProfileUpdate(formData); // Pass updated profile to parent
+
+    // Check if required fields are missing
+    if (!formData.name || !formData.email || !formData.age) {
+      console.error("Form validation failed: Missing required fields.");
+      return;
+    }
+
+    const updatedProfile = {
+      name: formData.name,
+      age: formData.age,
+      gender: formData.gender,
+      email: formData.email,
+    };
+
+    setLoading(true);  // Set loading to true when the update starts
+
+    // Call onProfileUpdate and wait for it to finish
+    await onProfileUpdate(updatedProfile);
+    
+    setLoading(false);  // Set loading back to false after the update is done
   };
 
   return (
@@ -41,22 +63,21 @@ const EditProfile = ({ profile, onProfileUpdate, onCancel }) => {
             />
           </div>
 
-          {/* Mobile Number */}
+          {/* Mobile Number - Not editable */}
           <div>
             <label className="block text-orange-400 font-bold">Mobile number</label>
             <input
               type="tel"
               name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-              placeholder="+91 Enter mobile number"
+              value={formData.phone.slice(2)}
+              className="w-full px-4 py-2 border-2 rounded-md bg-gray-100 cursor-not-allowed"
+              readOnly  // Prevent user from editing phone number
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-orange-400  font-bold">Email</label>
+            <label className="block text-orange-400 font-bold">Email</label>
             <input
               type="email"
               name="email"
@@ -72,7 +93,7 @@ const EditProfile = ({ profile, onProfileUpdate, onCancel }) => {
             <label className="block text-orange-400 font-bold">Gender</label>
             <select
               name="gender"
-              value={formData.gender}
+              value={formData.gender || ''}
               onChange={handleChange}
               className="w-full px-4 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
@@ -102,14 +123,16 @@ const EditProfile = ({ profile, onProfileUpdate, onCancel }) => {
               type="button"
               onClick={onCancel}
               className="px-4 py-2 border-2 border-orange-400 text-orange-400 rounded-md hover:border-orange-500"
+              disabled={loading}  // Disable the button while loading
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
+              className={`px-4 py-2 text-white rounded-md ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-400 hover:bg-orange-500'}`}
+              disabled={loading}  // Disable the button while loading
             >
-              Update
+              {loading ? 'Updating...' : 'Update'}
             </button>
           </div>
         </form>

@@ -1,9 +1,12 @@
+
 import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "../components/OrderHeader.jsx";
 import LandingPage from "../components/LandingPage.jsx";
 import DashBoard from "./DashBoard.jsx";
 import Cart from "../components/Cart.jsx"; // Import Cart component
+import OrderFooter from "../components/OrderFooter.jsx";
+import Login from "../components/Login.jsx";
 
 export default function Order() {
     const [cartItems, setCartItems] = useState([]);
@@ -38,11 +41,15 @@ export default function Order() {
                     path="/"
                     element={<LandingPage addToCart={addToCart} />}
                 />
+                <Route path="/login" element={<Login />} />
+
                 <Route path="/account/*" element={<DashBoard />} />
             </Routes>
 
             {/* Conditional rendering of Cart */}
             {isCartOpen && <Cart cartItems={cartItems} removeFromCart={removeFromCart} toggleCart={toggleCart} addToCart={addToCart} />}
+            <OrderFooter />
+
         </>
     );
 }

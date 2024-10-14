@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth } from "../firebase.config";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import EggBucketImage from '../assets/Images/EggBucket.png';
 import logo from '../assets/Images/logo.png';
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { fetchUserData } from "../redux/userSlice"; 
 
 function Login() {
   const [phone, setPhone] = useState("");
@@ -13,50 +15,55 @@ function Login() {
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const onCaptchVerify = () => {
-    return new Promise((resolve, reject) => {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(
-          "recaptcha-container",
-          {
-            size: "invisible",
-            callback: () => {
-              console.log("reCAPTCHA verified");
-              resolve();
-            },
-            'expired-callback': () => {
-              window.alert('reCAPTCHA expired. Please try again.');
-              reject();
-            },
+  useEffect(() => {
+    // Ensure the recaptcha container is present
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: () => {
+            console.log("reCAPTCHA verified");
           },
-          auth
-        );
-      } else {
-        resolve();
+          "expired-callback": () => {
+            window.alert("reCAPTCHA expired. Please try again.");
+          },
+        },
+        auth
+      );
+    }
+
+    // Cleanup function
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear(); // Clear the verifier if needed
+        delete window.recaptchaVerifier; // Remove the reference to avoid reinitialization
       }
-    });
-  };
+    };
+  }, []);
 
   const handleLogin = () => {
-    onCaptchVerify()
-      .then(() => {
-        const appVerifier = window.recaptchaVerifier;
-        const formatPh = `+91${phone}`;
-        console.log(formatPh);
+    const appVerifier = window.recaptchaVerifier;
+    const formatPh = `+91${phone}`;
+    console.log(formatPh);
 
-        return signInWithPhoneNumber(auth, formatPh, appVerifier);
-      })
-      .then((confirmationResult) => {
-        window.confirmationResult = confirmationResult;
-        setConfirmationResult(confirmationResult);
-        setOtpSent(true);
-        setMessage("OTP sent successfully!");
-      })
-      .catch((error) => {
-        console.error("Error sending OTP:", error.code, error.message);
-        setMessage("Error sending OTP, please try again.");
-      });
+    if (appVerifier) {
+      signInWithPhoneNumber(auth, formatPh, appVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          setConfirmationResult(confirmationResult);
+          setOtpSent(true);
+          setMessage("OTP sent successfully!");
+        })
+        .catch((error) => {
+          console.error("Error sending OTP:", error.code, error.message);
+          setMessage("Error sending OTP, please try again.");
+        });
+    } else {
+      setMessage("reCAPTCHA not initialized properly. Please refresh and try again.");
+    }
   };
 
   const setIdToken = async () => {
@@ -66,7 +73,10 @@ function Login() {
       try {
         const token = await currentUser.getIdToken(false);
         localStorage.setItem("token", token);
-        navigate("/order/account");
+        const phoneNumber = currentUser.phoneNumber;
+        await dispatch(fetchUserData(phoneNumber)).unwrap();
+       
+        navigate("/order");
       } catch (error) {
         console.error("Error fetching ID token:", error);
       }
@@ -93,7 +103,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen flex flex-col lg:flex-row mt-12">
       <div className="hidden lg:flex lg:w-[700px] bg-[#F0A817] items-center justify-center rounded-r-3xl">
         <div className="text-white mt-3 font-sans">
           <div>
@@ -124,7 +134,7 @@ function Login() {
                 pattern="[6789][0-9]{9}"
                 className="flex-1 border p-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
-              <div id="recaptcha-container"></div>
+              <div id="recaptcha-container"></div> {/* Ensure this div is always present */}
               <button
                 type="button"
                 onClick={handleLogin}

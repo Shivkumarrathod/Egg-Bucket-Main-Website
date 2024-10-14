@@ -1,19 +1,18 @@
 
-
-
 import React, { useState } from 'react';
-import EditProfile from './EditProfile'; // Import the EditProfile component
+import { useSelector } from 'react-redux';  
+import EditProfile from './EditProfile'; 
+import { useDispatch } from 'react-redux';
+import { fetchUserData } from '../redux/userSlice';
 
 const Profile = () => {
-  const [profile, setProfile] = useState({
-    name: 'John ',
-    mobile: '123-456-7890',
-    email: 'john.doe@example.com',
-    gender: 'Male',
-    age: '25',
-  });
+  // Fetch userData from the Redux store
+  const dispatch = useDispatch();
 
-  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  const { userData, loading, error } = useSelector((state) => state.user);
+  
+  // State to manage the edit mode
+  const [isEditing, setIsEditing] = useState(false);
 
   // Handle edit button click
   const handleEditClick = () => {
@@ -21,15 +20,51 @@ const Profile = () => {
   };
 
   // Handle profile update
-  const handleProfileUpdate = (updatedProfile) => {
-    setProfile(updatedProfile); // Update profile with new data
-    setIsEditing(false); // Exit edit mode
+  const handleProfileUpdate = async(updatedProfile) => {
+    try {
+      const phoneNumber = userData.phone;
+      const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.slice(1) : phoneNumber;
+
+      // Log the updated profile data for debugging
+      // console.log("Updated Profile Data:", updatedProfile);
+
+      // Make the PATCH request to update the profile
+      const response = await fetch(`https://b2c-49u4.onrender.com/api/v1/customer/user/${phoneNumber}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProfile),
+      });
+
+      // console.log("API Response:", response); // Log response for debugging
+
+      if (!response.ok) {
+        const errorDetails = await response.text();
+        throw new Error(`Failed to update profile: ${response.statusText} - ${errorDetails}`);
+      }
+      dispatch(fetchUserData(phoneNumber));
+
+      const data = await response.json();
+      // console.log("Profile updated:", data);
+      setIsEditing(false);  // Exit edit mode after successful update
+
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   // Handle canceling the edit
   const handleEditCancel = () => {
     setIsEditing(false); // Exit edit mode without saving
   };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  if (!userData) {
+    return <p>No profile data available</p>;
+  }
 
   return (
     <div className="relative h-2/3 overflow-y-auto border-2 border-gray-200 shadow-md rounded-lg p-6">
@@ -40,25 +75,31 @@ const Profile = () => {
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Name:</strong>
             <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal ">
-              {profile.name}
+              {userData.name || 'N/A'}
             </span>
           </p>
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Mobile:</strong>
-            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">{profile.mobile}</span>
+            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
+              {userData.phone.slice(2) || 'N/A'} {/* Displaying the phone number without the country code */}
+            </span>
           </p>
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Email:</strong>
-            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">{profile.email}</span>
+            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
+              {userData.email || 'N/A'}
+            </span>
           </p>
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Gender:</strong>
-            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">{profile.gender}</span>
+            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
+              {userData.gender || 'N/A'}
+            </span>
           </p>
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Age:</strong>
-            <span className="ml-2  w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
-              {profile.age}
+            <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
+              {userData.age || 'N/A'}
             </span>
           </p>
 
@@ -71,7 +112,7 @@ const Profile = () => {
         </div>
       ) : (
         <EditProfile
-          profile={profile}
+          profile={userData}    
           onProfileUpdate={handleProfileUpdate}
           onCancel={handleEditCancel}
         />
@@ -80,4 +121,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Profile; 
