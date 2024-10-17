@@ -1,5 +1,5 @@
-
-import React, { useState } from "react";
+// Header Component
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import bglogo from "../assets/Images/logo.png";
 import { AiOutlineShoppingCart, AiOutlineMenu, AiOutlineClose, AiOutlineDown, AiOutlinePlus, AiOutlineUser } from "react-icons/ai";
@@ -7,12 +7,18 @@ import Cart from "./Cart";
 import { useSelector } from 'react-redux';
 
 const Header = ({ cartItems, addToCart, removeFromCart }) => {
+  const { userData } = useSelector((state) => state.user);
   const [nav, setNav] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showAddressPopup, setShowAddressPopup] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("Patli Gali, Mota Bazzar, Jammu");
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [temporaryAddress, setTemporaryAddress] = useState(null);
-  const { userData } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (userData?.addresses?.length > 0) {
+      setSelectedAddress(userData.addresses[0].fullAddress);
+    }
+  }, [userData]);
 
   const handleNav = () => setNav(!nav);
   const toggleCart = () => setIsCartOpen(!isCartOpen);
@@ -26,8 +32,6 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
     }
     toggleAddressPopup();
   };
-
-  console.log("Cart Items:", cartItems); // Debugging
 
   return (
     <>
@@ -53,16 +57,11 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
             </div>
           </div>
 
-          <ul className="hidden md:flex lg:space-x-8 md:space-x-4 text-gray-800 left-[150px] absolute">
-            <li className="relative lg:text-lg md:text-base hover:text-orange-500 cursor-pointer transition-transform transform hover:scale-105 group">
-              <Link to="/order/">Home</Link>
-              <span className="absolute bottom-0 left-0 w-0 h-1 bg-orange-500 transition-all duration-1000 group-hover:w-full"></span>
-            </li>
-          </ul>
-
           <div className="absolute lg:right-[200px] md:right-[170px]">
             <div className="hidden md:flex items-center space-x-2 cursor-pointer" onClick={toggleAddressPopup}>
-              <span className="text-lg hover:text-orange-500 text-gray-800 truncate md:text-base lg:text-lg">{selectedAddress}</span>
+              <span className="text-lg hover:text-orange-500 text-gray-800 truncate md:text-base lg:text-lg">
+                {selectedAddress ? `${selectedAddress.flatNo}, ${selectedAddress.area}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipCode}, ${selectedAddress.country}` : "Select Address"}
+              </span>
               <AiOutlineDown className="text-gray-800" />
             </div>
             {showAddressPopup && (
@@ -91,26 +90,13 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
           <div className="hidden md:flex items-center md:space-x-3 lg:space-x-6 mx-3">
             <AiOutlineShoppingCart size={25} className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110" onClick={toggleCart} />
             <Link className="text-gray-800 hover:text-orange-500 text-2xl" to="/order/account/orders">
-              <AiOutlineUser className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110" />{" "}
-              {/* Profile icon */}
+              <AiOutlineUser className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110" />
             </Link>
           </div>
         </div>
-
-        <div className={`fixed top-16 left-0 right-0 bg-white p-6 my-4 text-center transition-transform duration-300 ease-in-out transform rounded-lg shadow-lg ${nav ? "translate-x-0" : "-translate-x-full"} md:hidden`}>
-          <div className="p-8 bg-orange-500 rounded-lg">
-            <ul className="text-white space-y-6 text-lg">
-              <li className="hover:text-gray-300 transition-colors duration-300 cursor-pointer">
-                <Link to="/order/">Home</Link>
-              </li>
-              <li className="hover:text-gray-300 transition-colors duration-300 cursor-pointer">
-                Terms and Conditions
-              </li>
-            </ul>
-          </div>
-        </div>
       </nav>
-      {isCartOpen && <Cart cartItems={cartItems} removeFromCart={removeFromCart} toggleCart={toggleCart} addToCart={addToCart} />}
+
+      {isCartOpen && <Cart cartItems={cartItems} removeFromCart={removeFromCart} toggleCart={toggleCart} addToCart={addToCart} selectedAddress={selectedAddress} />}
     </>
   );
 };

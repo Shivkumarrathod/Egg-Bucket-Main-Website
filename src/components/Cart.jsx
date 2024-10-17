@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiChevronDown } from "react-icons/fi";
 
-const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
+const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddress: headerSelectedAddress }) => {
   const [selectedAddress, setSelectedAddress] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showSelectAlert, setShowSelectAlert] = useState(false);
@@ -17,7 +17,14 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     setUserToken(token);
-  }, []);
+
+    // Use the address passed from the header if available, else fallback to the first address from userData
+    if (headerSelectedAddress) {
+      setSelectedAddress(headerSelectedAddress);
+    } else if (userData?.addresses?.length > 0) {
+      setSelectedAddress(userData.addresses[0].fullAddress);
+    }
+  }, [headerSelectedAddress, userData]);
 
   const [localQuantities, setLocalQuantities] = useState(
     cartItems.reduce((acc, item) => {
@@ -63,7 +70,17 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
     }
 
     const products = cartItems.reduce((acc, item) => {
-      acc[item.id] = localQuantities[item.id];
+      let mappedId;
+      if (item.id === 1) {
+        mappedId = "E30";
+      } else if (item.id === 2) {
+        mappedId = "E6";
+      } else if (item.id === 3) {
+        mappedId = "E12";
+      } else {
+        mappedId = item.id;
+      }
+      acc[mappedId] = localQuantities[item.id];
       return acc;
     }, {});
 
@@ -169,7 +186,7 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
 
           <div className="relative mt-4">
             <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex justify-between items-center cursor-pointer border p-2 rounded-md">
-              <span>Select Address</span>
+              <span>{selectedAddress ? `${selectedAddress.flatNo}, ${selectedAddress.area}, ${selectedAddress.city}, ${selectedAddress.state}` : 'Select Address'}</span>
               <FiChevronDown />
             </div>
             {isDropdownOpen && (
@@ -187,12 +204,6 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart }) => {
                   </li>
                 ))}
               </ul>
-            )}
-            {selectedAddress && (
-              <p className="mt-2 overflow-x-auto whitespace-nowrap">
-                Delivery to: 
-                {`${selectedAddress.flatNo}, ${selectedAddress.area}, ${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.zipCode}, ${selectedAddress.country}`}
-              </p>
             )}
           </div>
 
