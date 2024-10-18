@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiChevronDown } from "react-icons/fi";
 
-const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddress: headerSelectedAddress }) => {
+const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSelectedAddress }) => {
+  const [cartItems, setCartItems] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showSelectAlert, setShowSelectAlert] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [userToken, setUserToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   const { userData } = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -17,6 +19,10 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddres
   useEffect(() => {
     const token = localStorage.getItem('token');
     setUserToken(token);
+
+    // Load cart items from localStorage
+    const savedCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    setCartItems(savedCartItems);
 
     // Use the address passed from the header if available, else fallback to the first address from userData
     if (headerSelectedAddress) {
@@ -26,27 +32,59 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddres
     }
   }, [headerSelectedAddress, userData]);
 
-  const [localQuantities, setLocalQuantities] = useState(
-    cartItems.reduce((acc, item) => {
+  const [localQuantities, setLocalQuantities] = useState({});
+
+  useEffect(() => {
+    // Update localQuantities when cartItems change
+    const newLocalQuantities = cartItems.reduce((acc, item) => {
       acc[item.id] = item.quantity;
       return acc;
-    }, {})
-  );
+    }, {});
+    setLocalQuantities(newLocalQuantities);
+  }, [cartItems]);
+
+  const saveCartToLocalStorage = (updatedCart) => {
+    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    const updatedCartItems = cartItems.filter(item => item.id !== productId);
+    setCartItems(updatedCartItems);
+    
+    const { [productId]: _, ...updatedQuantities } = localQuantities;
+    setLocalQuantities(updatedQuantities);
+    
+    saveCartToLocalStorage(updatedCartItems);
+    removeFromCart(productId);
+  };
 
   const incrementQuantity = (product) => {
-    const updatedQuantity = localQuantities[product.id] + 1;
+    const updatedQuantity = (localQuantities[product.id] || 0) + 1;
     setLocalQuantities({ ...localQuantities, [product.id]: updatedQuantity });
+    const updatedCartItems = cartItems.map(item =>
+      item.id === product.id ? { ...item, quantity: updatedQuantity } : item
+    );
+    setCartItems(updatedCartItems);
+    saveCartToLocalStorage(updatedCartItems);
     addToCart({ ...product, quantity: updatedQuantity });
   };
 
   const decrementQuantity = (product) => {
     if (localQuantities[product.id] === 1) {
       removeFromCart(product.id);
+      const updatedCartItems = cartItems.filter(item => item.id !== product.id);
+      setCartItems(updatedCartItems);
+      saveCartToLocalStorage(updatedCartItems);
       const { [product.id]: _, ...rest } = localQuantities;
       setLocalQuantities(rest);
     } else {
       const updatedQuantity = localQuantities[product.id] - 1;
       setLocalQuantities({ ...localQuantities, [product.id]: updatedQuantity });
+      const updatedCartItems = cartItems.map(item =>
+        item.id === product.id ? { ...item, quantity: updatedQuantity } : item
+      );
+      setCartItems(updatedCartItems);
+      saveCartToLocalStorage(updatedCartItems);
       addToCart({ ...product, quantity: updatedQuantity });
     }
   };
@@ -95,6 +133,7 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddres
     };
 
     try {
+      setIsLoading(true); // Set loading to true
       const response = await axios.post(
         'https://b2c-49u4.onrender.com/api/v1/order/order',
         orderPayload
@@ -107,17 +146,20 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddres
     } catch (error) {
       console.error('Error placing order:', error);
       setSuccessMessage('Failed to place order. Please try again.');
+    } finally {
+      setIsLoading(false); // Set loading to false
+      setTimeout(() => {
+        clearCart();
+        setSuccessMessage("Order placed successfully!");
+      }, 1000);
     }
-
-    setTimeout(() => {
-      clearCart();
-      setSuccessMessage("Order placed successfully!");
-    }, 1000);
   };
 
   const clearCart = () => {
     cartItems.forEach(item => removeFromCart(item.id));
+    setCartItems([]);
     setLocalQuantities({});
+    saveCartToLocalStorage([]);
   };
 
   const handleLoginRedirect = () => {
@@ -161,7 +203,7 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddres
                   <button className="bg-gray-200 px-2 py-1" onClick={() => incrementQuantity(item)}>
                     +
                   </button>
-                  <button className="bg-red-500 text-white px-2 py-1" onClick={() => removeFromCart(item.id)}>
+                  <button className="bg-red-500 text-white px-2 py-1" onClick={() => handleRemoveFromCart(item.id)}>
                     Remove
                   </button>
                 </div>
@@ -209,11 +251,18 @@ const Cart = ({ cartItems, addToCart, removeFromCart, toggleCart, selectedAddres
 
           <div className="mt-4">
             {userToken ? (
-              <button onClick={handlePlaceOrder} className="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600">
-                Place Order
+              <button 
+                onClick={handlePlaceOrder} 
+                className={`bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={isLoading} // Disable button during loading
+              >
+                {isLoading ? "Placing Order..." : "Place Order"} {/* Show loader text */}
               </button>
             ) : (
-              <button onClick={handleLoginRedirect} className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600">
+              <button 
+                onClick={handleLoginRedirect} 
+                className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
+              >
                 Login
               </button>
             )}

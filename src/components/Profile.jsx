@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';  
 import EditProfile from './EditProfile'; 
@@ -8,11 +7,11 @@ import { fetchUserData } from '../redux/userSlice';
 const Profile = () => {
   // Fetch userData from the Redux store
   const dispatch = useDispatch();
-
   const { userData, loading, error } = useSelector((state) => state.user);
   
-  // State to manage the edit mode
+  // State to manage the edit mode and loading
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // New loading state
 
   // Handle edit button click
   const handleEditClick = () => {
@@ -20,13 +19,12 @@ const Profile = () => {
   };
 
   // Handle profile update
-  const handleProfileUpdate = async(updatedProfile) => {
+  const handleProfileUpdate = async (updatedProfile) => {
     try {
       const phoneNumber = userData.phone;
       const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.slice(1) : phoneNumber;
 
-      // Log the updated profile data for debugging
-      // console.log("Updated Profile Data:", updatedProfile);
+      setIsLoading(true); // Start loading
 
       // Make the PATCH request to update the profile
       const response = await fetch(`https://b2c-49u4.onrender.com/api/v1/customer/user/${phoneNumber}`, {
@@ -37,20 +35,19 @@ const Profile = () => {
         body: JSON.stringify(updatedProfile),
       });
 
-      // console.log("API Response:", response); // Log response for debugging
-
       if (!response.ok) {
         const errorDetails = await response.text();
         throw new Error(`Failed to update profile: ${response.statusText} - ${errorDetails}`);
       }
+      
       dispatch(fetchUserData(phoneNumber));
-
       const data = await response.json();
-      // console.log("Profile updated:", data);
       setIsEditing(false);  // Exit edit mode after successful update
 
     } catch (error) {
       console.error("Error updating profile:", error);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -81,7 +78,7 @@ const Profile = () => {
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Mobile:</strong>
             <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
-              {userData.phone.slice(2) || 'N/A'} {/* Displaying the phone number without the country code */}
+              {userData.phone.slice(2) || 'N/A'}
             </span>
           </p>
           <p className="flex items-center">
@@ -111,14 +108,23 @@ const Profile = () => {
           </button>
         </div>
       ) : (
-        <EditProfile
-          profile={userData}    
-          onProfileUpdate={handleProfileUpdate}
-          onCancel={handleEditCancel}
-        />
+        <>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-16">
+              <div className="loader border-t-4 border-blue-500 w-10 h-10 rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <EditProfile
+              profile={userData}    
+              onProfileUpdate={handleProfileUpdate}
+              onCancel={handleEditCancel}
+              isLoading={isLoading} // Pass loading state to EditProfile if needed
+            />
+          )}
+        </>
       )}
     </div>
   );
 };
 
-export default Profile; 
+export default Profile;

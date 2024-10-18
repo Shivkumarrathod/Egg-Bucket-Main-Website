@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import Header from "../components/OrderHeader.jsx";
 import LandingPage from "../components/LandingPage.jsx";
 import DashBoard from "./DashBoard.jsx";
-import Cart from "../components/Cart.jsx"; // Import Cart component
+import Cart from "../components/Cart.jsx";
 import OrderFooter from "../components/OrderFooter.jsx";
 import Login from "../components/Login.jsx";
 

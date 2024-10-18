@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import pc30 from '../assets/Images/30pc.svg';
 import pc12 from '../assets/Images/12pc.svg';
@@ -26,7 +26,21 @@ const productsData = [
 
 const LandingPage = ({ addToCart }) => {
   const [quantities, setQuantities] = useState(productsData.map(() => 1));
-  const [popupVisible, setPopupVisible] = useState(false); // Popup visibility state
+  const [popupVisible, setPopupVisible] = useState(false);
+
+  // Load cart items from local storage when component mounts
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cartItems');
+    if (savedCart) {
+      const parsedCart = JSON.parse(savedCart);
+      // Update quantities based on saved cart
+      const updatedQuantities = productsData.map(product => {
+        const savedItem = parsedCart.find(item => item.id === product.id);
+        return savedItem ? savedItem.quantity : 1;
+      });
+      setQuantities(updatedQuantities);
+    }
+  }, []);
 
   const handleIncrement = (index) => {
     setQuantities(prev => {
@@ -48,7 +62,22 @@ const LandingPage = ({ addToCart }) => {
 
   const handleAddToCart = (product, index) => {
     const quantity = quantities[index];
-    addToCart({ ...product, quantity });
+    const productToAdd = { ...product, quantity };
+
+    // Update localStorage
+    const currentCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const existingItemIndex = currentCart.findIndex(item => item.id === product.id);
+
+    if (existingItemIndex !== -1) {
+      currentCart[existingItemIndex].quantity += quantity;
+    } else {
+      currentCart.push(productToAdd);
+    }
+
+    localStorage.setItem('cartItems', JSON.stringify(currentCart));
+
+    // Call the addToCart prop function
+    addToCart(productToAdd);
 
     // Show popup and hide after 1 second
     setPopupVisible(true);
@@ -69,9 +98,7 @@ const LandingPage = ({ addToCart }) => {
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="mb-12 relative bg-cover bg-no-repeat bg-center" style={{ backgroundImage: `url(${bg})` }}>
-          {/* Text and image sections */}
           <div className="flex flex-col-reverse md:flex-row justify-between items-center">
-            {/* Text Section */}
             <div className="md:w-1/2 text-center md:text-left">
               <p className="text-lg font-semibold text-orange-600">Egg Bucket Collection</p>
               <h2 className="text-4xl md:text-5xl font-bold mb-4">Farm Fresh Eggs<br /> Directly To Your <br />Table</h2>
@@ -104,7 +131,10 @@ const LandingPage = ({ addToCart }) => {
               <div className="flex flex-col bg-gradient-to-r from-yellow-300 to-orange-300 p-4 rounded-2xl">
                 <h4 className="text-lg font-bold text-center">{product.name}</h4>
                 <div className="flex items-center justify-between">
-                  <button className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl flex justify-center items-center transition-colors" onClick={() => handleAddToCart(product, index)}>
+                  <button 
+                    className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl flex justify-center items-center transition-colors" 
+                    onClick={() => handleAddToCart(product, index)}
+                  >
                     <ShoppingCart size={20} className="mr-2" />
                     Add To Cart
                   </button>
@@ -117,13 +147,11 @@ const LandingPage = ({ addToCart }) => {
         {/* Reviews Section */}
         <section className="py-16 bg-white mt-16">
           <div className="container mx-auto px-4">
-            {/* Left-aligned heading and subheading */}
             <div className="mb-12 text-left">
               <h2 className="text-5xl font-extrabold text-orange-500 mb-4">What our customers are saying</h2>
               <p className="text-lg text-gray-700">Don't just take our word for it. See what our customers have to say about EggBucket!</p>
             </div>
 
-            {/* Review cards */}
             <div className="flex flex-wrap -mx-4">
               {reviews.map((review, index) => (
                 <div
