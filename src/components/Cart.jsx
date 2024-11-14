@@ -27,9 +27,11 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
     // Use the address passed from the header if available, else fallback to the first address from userData
     if (headerSelectedAddress) {
       setSelectedAddress(headerSelectedAddress);
-    } else if (userData?.addresses?.length > 0) {
-      setSelectedAddress(userData.addresses[0].fullAddress);
+    } 
+    else if (userData?.addresses?.length > 0) {
+      setSelectedAddress(userData.addresses[0]);
     }
+     
   }, [headerSelectedAddress, userData]);
 
   const [localQuantities, setLocalQuantities] = useState({});
@@ -95,18 +97,19 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
   const shipping = 0;
   const totalPrice = subtotal + shipping;
 
+  
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
       setShowSelectAlert(true);
       return;
     }
-
+  
     const customer = userData;
     if (!customer) {
       console.error('No customer data found in Redux');
       return;
     }
-
+  
     const products = cartItems.reduce((acc, item) => {
       let mappedId;
       if (item.id === 1) {
@@ -121,40 +124,44 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
       acc[mappedId] = localQuantities[item.id];
       return acc;
     }, {});
-
+  
     const orderPayload = {
       address: selectedAddress,
       amount: totalPrice,
       products,
-      outletId: "OP_1",
-      customerName: customer.name || "Anonymous",
+      // outletId: "OP_1",
       customerId: customer.phone,
-      deliveryPartnerId: "partner789",
     };
-
+    // console.log(orderPayload);
+  
     try {
-      setIsLoading(true); // Set loading to true
+      setIsLoading(true); // Start loading
       const response = await axios.post(
-        'https://b2c-49u4.onrender.com/api/v1/order/order',
-        orderPayload
+        'https://b2c-backend-1.onrender.com/api/v1/order/order',
+        orderPayload,
+        { validateStatus: () => true } 
       );
-
-      if (response.status === 201 && response.data.message === "Order created and customer totalExpenditure updated") {
+      // console.log(response.data.status)
+  
+      if (response.data.status === "success") {
         const city = selectedAddress.city || "your location";
         setSuccessMessage(`Order placed successfully! Delivering to: ${city}`);
+        clearCart(); // Clear cart if the order is successfully placed
+      } else if (response.data.status === "fail" && response.data.message === "No nearby outlets, we will soon expand here!!") {
+        setSuccessMessage(response.data.message); // Display fail message
       }
     } catch (error) {
       console.error('Error placing order:', error);
       setSuccessMessage('Failed to place order. Please try again.');
     } finally {
-      setIsLoading(false); // Set loading to false
+      setIsLoading(false); // End loading
       setTimeout(() => {
-        clearCart();
-        setSuccessMessage("Order placed successfully!");
-      }, 1000);
+        setSuccessMessage(""); // Clear success message after delay
+      }, 2000);
     }
   };
-
+  
+ 
   const clearCart = () => {
     cartItems.forEach(item => removeFromCart(item.id));
     setCartItems([]);
@@ -228,16 +235,16 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
 
           <div className="relative mt-4">
             <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex justify-between items-center cursor-pointer border p-2 rounded-md">
-              <span>{selectedAddress ? `${selectedAddress.flatNo}, ${selectedAddress.area}, ${selectedAddress.city}, ${selectedAddress.state}` : 'Select Address'}</span>
+              <span>{selectedAddress.fullAddress ? `${selectedAddress.fullAddress.flatNo}, ${selectedAddress.fullAddress.area}, ${selectedAddress.fullAddress.city}, ${selectedAddress.fullAddress.state}` : 'Select Address'}</span>
               <FiChevronDown />
             </div>
             {isDropdownOpen && (
-              <ul className="absolute bg-white border rounded-md shadow-lg mt-1 w-full z-30">
+              <ul className="absolute bg-white border rounded-md shadow-lg mt-1 w-full z-30 max-h-80 overflow-y-auto">
                 {userData?.addresses?.map((address, index) => (
                   <li 
                     key={index} 
                     onClick={() => {
-                      setSelectedAddress(address.fullAddress);
+                      setSelectedAddress(address);
                       setIsDropdownOpen(false);
                     }} 
                     className="p-2 cursor-pointer hover:bg-orange-200"

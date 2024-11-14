@@ -53,6 +53,9 @@ function Account() {
         localStorage.removeItem("customerName"); // Remove customer name if stored
         localStorage.removeItem("outletId"); // Remove outlet ID if stored
         localStorage.removeItem("deliveryPartnerId"); // Remove delivery partner ID if stored
+        localStorage.removeItem("selectedAddress"); // Remove delivery partner ID if stored
+
+
         
         // Navigate to login page
         navigate('/order/login');

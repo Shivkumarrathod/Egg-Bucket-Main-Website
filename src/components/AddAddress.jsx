@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import L from 'leaflet';
@@ -24,7 +25,7 @@ const AddAddress = ({ onClose }) => {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [invalidFields, setInvalidFields] = useState({}); // Track invalid fields
+  const [invalidFields, setInvalidFields] = useState({});
 
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -32,23 +33,21 @@ const AddAddress = ({ onClose }) => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setInvalidFields((prev) => ({ ...prev, [e.target.name]: false })); // Reset invalid field state
+    setInvalidFields((prev) => ({ ...prev, [e.target.name]: false }));
   };
 
-  const initializeMap = (lat, lng) => {
+  const initializeMap = (lat, long) => {
     if (mapRef.current) {
-      const initialMap = L.map(mapRef.current).setView([lat, lng], 13);
-
+      const initialMap = L.map(mapRef.current).setView([lat, long], 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors',
       }).addTo(initialMap);
 
       setMap(initialMap);
-      const newMarker = L.marker([lat, lng], { draggable: true }).addTo(initialMap);
+      const newMarker = L.marker([lat, long], { draggable: true }).addTo(initialMap);
       setMarker(newMarker);
-
-      fetchAddress(lat, lng);
+      fetchAddress(lat, long);
 
       newMarker.on('dragend', (e) => {
         const newPos = e.target.getLatLng();
@@ -65,7 +64,7 @@ const AddAddress = ({ onClose }) => {
             const { latitude, longitude } = position.coords;
             setTimeout(() => initializeMap(latitude, longitude), 100);
           },
-          (error) => alert('Failed to get your location.')
+          () => alert('Failed to get your location.')
         );
       } else {
         alert('Geolocation is not supported by this browser.');
@@ -84,7 +83,7 @@ const AddAddress = ({ onClose }) => {
           initializeMap(latitude, longitude);
           setUseLocation(true);
         },
-        (error) => {
+        () => {
           alert('Geolocation permission denied or an error occurred.');
           setLoadingLocation(false);
         }
@@ -95,14 +94,14 @@ const AddAddress = ({ onClose }) => {
     }
   };
 
-  const fetchAddress = async (lat, lng) => {
+  const fetchAddress = async (lat, long) => {
     try {
       const response = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${long}&format=json&accept-language=en`
       );
       const address = response.data.address;
       const addressLine2 = [address.road, address.suburb].filter(Boolean).join(', ');
-  
+
       setFormData((prevData) => ({
         ...prevData,
         addressLine2: addressLine2 || '',
@@ -116,33 +115,37 @@ const AddAddress = ({ onClose }) => {
       console.error('Error fetching address:', error);
     }
   };
-  
 
   const handleSaveAddress = async () => {
-    const invalid = {}; // Track fields that are invalid
+    const invalid = {};
     Object.keys(formData).forEach((key) => {
       if (!formData[key].trim()) {
-        invalid[key] = true; // Mark field as invalid if empty
+        invalid[key] = true;
       }
     });
 
     if (Object.keys(invalid).length > 0) {
       setInvalidFields(invalid);
-      return; // Prevent saving if there are invalid fields
+      return;
     }
 
     setIsLoading(true);
-    const newAddress = {
-      fullAddress: { ...formData },
-      coordinates: marker ? marker.getLatLng() : { lat: null, long: null },
-    };
+    const coordinates = marker
+      ? { lat: marker.getLatLng().lat, long: marker.getLatLng().lng } 
+      : { lat: null, long: null };
 
+    
+    const newAddress = {
+      fullAddress: { ...formData }, 
+      coordinates,
+    };
     const phoneNumber = userData.phone;
     const updatedUserData = { addresses: JSON.stringify([newAddress]) };
+   
 
     try {
       const response = await fetch(
-        `https://b2c-49u4.onrender.com/api/v1/customer/user/${phoneNumber}`,
+        ` https://b2c-backend-1.onrender.com/api/v1/customer/user/${phoneNumber}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },

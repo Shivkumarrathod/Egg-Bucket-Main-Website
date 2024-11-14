@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import bglogo from "../assets/Images/logo.png";
@@ -17,13 +18,24 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
 
   // Load address from localStorage if available
   useEffect(() => {
-    const storedAddress = localStorage.getItem("selectedAddress");
-    if (storedAddress) {
-      setSelectedAddress(JSON.parse(storedAddress));
-    } else if (userData?.addresses?.length > 0) {
-      const firstAddress = userData.addresses[0].fullAddress;
-      setSelectedAddress(firstAddress);
-      localStorage.setItem("selectedAddress", JSON.stringify(firstAddress));
+    try {
+      const storedAddress = localStorage.getItem("selectedAddress");
+      if (storedAddress) {
+        setSelectedAddress(JSON.parse(storedAddress));
+      } else if (userData?.addresses?.length > 0) {
+        const firstAddress = userData.addresses[0];
+        const firstAddressDetails = {
+          fullAddress: firstAddress.fullAddress || {},
+          coordinates: {
+            lat: firstAddress.coordinates?.lat || 0,
+            long: firstAddress.coordinates?.long || 0,
+          },
+        };
+        setSelectedAddress(firstAddressDetails);
+        localStorage.setItem("selectedAddress", JSON.stringify(firstAddressDetails));
+      }
+    } catch (error) {
+      console.error("Error parsing stored address:", error);
     }
   }, [userData]);
 
@@ -32,7 +44,18 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
   const toggleAddressPopup = () => setShowAddressPopup(!showAddressPopup);
   const toggleAddAddressPopup = () => setShowAddAddress(!showAddAddress);
 
-  const handleAddressSelect = (address) => setTemporaryAddress(address);
+  const handleAddressSelect = (address) => {
+    if (address?.fullAddress && address?.coordinates) {
+      const selected = {
+        fullAddress: address.fullAddress,
+        coordinates: {
+          lat: address.coordinates.lat,
+          long: address.coordinates.long,
+        },
+      };
+      setTemporaryAddress(selected);
+    }
+  };
 
   const saveSelectedAddress = () => {
     if (temporaryAddress) {
@@ -82,8 +105,8 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
               style={{ pointerEvents: userData ? "auto" : "none", opacity: userData ? 1 : 0.5 }}
             >
               <span className="text-lg hover:text-orange-500 text-gray-800 truncate md:text-base lg:text-lg">
-                {selectedAddress
-                  ? `${selectedAddress.flatNo}, ${selectedAddress.area}, ${selectedAddress.city}`
+                {selectedAddress?.fullAddress
+                  ? `${selectedAddress.fullAddress.flatNo || ''}, ${selectedAddress.fullAddress.area || ''}, ${selectedAddress.fullAddress.city || ''}`
                   : "Select Address"}
               </span>
               <AiOutlineDown className="text-gray-800" />
@@ -91,19 +114,19 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
             {showAddressPopup && (
               <div className="md:absolute mt-[70px] md:mt-9 w-[300px] md:w-[370px] md:right-[150px] bg-white p-6 rounded-lg shadow-lg z-20">
                 <h2 className="text-lg md:text-xl font-bold mb-4">Select an Address</h2>
-                <ul className="space-y-3">
+                <ul className="space-y-3 max-h-96 overflow-y-auto">
                   {userData?.addresses?.map((address, index) => (
                     <li
                       key={index}
-                      onClick={() => handleAddressSelect(address.fullAddress)}
+                      onClick={() => handleAddressSelect(address)}
                       className={`cursor-pointer p-2 rounded-md transition-all duration-300 md:text-lg text-sm transform ${
-                        temporaryAddress === address.fullAddress
+                        temporaryAddress?.fullAddress === address.fullAddress
                           ? "border-2 border-orange-500 text-gray-800 scale-105"
                           : "bg-gray-200 text-gray-800 hover:border-orange-400 hover:border-2"
                       }`}
-                      style={{ backgroundColor: temporaryAddress === address.fullAddress ? "white" : "" }}
+                      style={{ backgroundColor: temporaryAddress?.fullAddress === address.fullAddress ? "white" : "" }}
                     >
-                      {`${address.fullAddress.flatNo}, ${address.fullAddress.area}, ${address.fullAddress.city}, ${address.fullAddress.state}, ${address.fullAddress.country}-${address.fullAddress.zipCode}`}
+                      {`${address.fullAddress?.flatNo || ''}, ${address.fullAddress?.area || ''}, ${address.fullAddress?.city || ''}, ${address.fullAddress?.state || ''}, ${address.fullAddress?.country || ''}-${address.fullAddress?.zipCode || ''}`}
                     </li>
                   ))}
                 </ul>
