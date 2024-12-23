@@ -73,7 +73,7 @@ const Navbar = () => {
             <li className="relative">
               <button
                 onClick={toggleAboutMenu}
-                className="relative block px-3 py-2 text-gray-600 group flex items-center"
+                className="relative px-3 py-2 text-gray-600 group flex items-center"
               >
                 <span className="relative z-10 transition-colors text-lg group-hover:text-gray-950">
                   About us
@@ -147,16 +147,12 @@ const Navbar = () => {
             </li>
           </ul>
 
-          
-
-           <Link to="/order" className="hidden md:inline-block">
-
-
-{   /*         <button className="bg-gradient-to-r from-[#f87709] to-[#f88a12] text-white px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center space-x-2">
+          <Link to="/order" className="hidden md:inline-block">
+            <button className="bg-gradient-to-r from-[#f87709] to-[#f88a12] text-white px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center space-x-2">
               <span>Order Now</span>
               <MdShoppingCart className="w-6 h-6" />
-            </button> */}
-          </Link>  
+            </button>
+          </Link>
         </div>
 
         {/* Hamburger Menu for Mobile */}
@@ -257,21 +253,14 @@ const Navbar = () => {
               </Link>
             </li>
 
-
-
             <li>
               <Link to="/order">
-
-
-{      /*          <button className="bg-gradient-to-r from-[#f87709] to-[#f88a12] text-white px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 w-full flex justify-center items-center space-x-2">
+                {/*          <button className="bg-gradient-to-r from-[#f87709] to-[#f88a12] text-white px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 w-full flex justify-center items-center space-x-2">
                   <span>Order Now</span>
                   <MdShoppingCart className="w-6 h-6" />
                 </button> */}
-
-              </Link> 
-            </li> 
-
-
+              </Link>
+            </li>
           </ul>
         </div>
       )}

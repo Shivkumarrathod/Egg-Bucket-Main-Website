@@ -1,13 +1,19 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import bglogo from "../assets/Images/logo.png";
-import { AiOutlineShoppingCart, AiOutlineMenu, AiOutlineClose, AiOutlineDown, AiOutlinePlus, AiOutlineUser } from "react-icons/ai";
+import {
+  AiOutlineShoppingCart,
+  AiOutlineMenu,
+  AiOutlineClose,
+  AiOutlineDown,
+  AiOutlinePlus,
+  AiOutlineUser,
+} from "react-icons/ai";
 import Cart from "./Cart";
 import AddAddress from "./AddAddress";
 import { useSelector } from "react-redux";
 
-const Header = ({ cartItems, addToCart, removeFromCart }) => {
+const Header = ({ addToCart, removeFromCart }) => {
   const { userData } = useSelector((state) => state.user);
   const [nav, setNav] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -15,6 +21,7 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [temporaryAddress, setTemporaryAddress] = useState(null);
   const [showAddAddress, setShowAddAddress] = useState(false);
+  const cartItems = useSelector((state) => state.localStorage.items);
 
   // Load address from localStorage if available
   useEffect(() => {
@@ -32,7 +39,10 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
           },
         };
         setSelectedAddress(firstAddressDetails);
-        localStorage.setItem("selectedAddress", JSON.stringify(firstAddressDetails));
+        localStorage.setItem(
+          "selectedAddress",
+          JSON.stringify(firstAddressDetails)
+        );
       }
     } catch (error) {
       console.error("Error parsing stored address:", error);
@@ -68,23 +78,52 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
   return (
     <>
       {isCartOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40" onClick={toggleCart}></div>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40"
+          onClick={toggleCart}
+        ></div>
       )}
 
-      <nav className={`w-full bg-white shadow-md fixed top-0 z-50 transition-all duration-300 ease-in-out ${isCartOpen ? 'blur-sm' : ''}`}>
+      <nav
+        className={`w-full bg-white shadow-md fixed top-0 z-50 transition-all duration-300 ease-in-out ${
+          isCartOpen ? "blur-sm" : ""
+        }`}
+      >
         <div className="flex flex-col md:flex-row justify-between items-center px-4 py-3 md:px-8">
           <div className="flex items-center justify-between w-full md:w-auto">
-            <img src={bglogo} className="h-[40px] w-[80px] md:h-[55px] md:w-[100px]" alt="Logo" />
+            <img
+              src={bglogo}
+              className="h-[40px] w-[80px] md:h-[55px] md:w-[100px]"
+              alt="Logo"
+            />
             <div className="md:hidden flex items-center space-x-4">
-              <AiOutlineDown className="text-gray-600 hover:text-orange-500 text-2xl" onClick={toggleAddressPopup} />
-              <AiOutlineShoppingCart size={25} className="cursor-pointer text-gray-600 hover:text-orange-500 transition-transform transform hover:scale-110" onClick={toggleCart} />
-              <Link className="text-gray-600 hover:text-orange-500 text-2xl" to="/order/account/orders">
+              <AiOutlineDown
+                className="text-gray-600 hover:text-orange-500 text-2xl"
+                onClick={toggleAddressPopup}
+              />
+              <AiOutlineShoppingCart
+                size={25}
+                className="cursor-pointer text-gray-600 hover:text-orange-500 transition-transform transform hover:scale-110"
+                onClick={toggleCart}
+              />
+              <Link
+                className="text-gray-600 hover:text-orange-500 text-2xl"
+                to="/order/account/orders"
+              >
                 <AiOutlineUser />
               </Link>
               {!nav ? (
-                <AiOutlineMenu size={25} className="cursor-pointer transition-transform transform hover:scale-110" onClick={handleNav} />
+                <AiOutlineMenu
+                  size={25}
+                  className="cursor-pointer transition-transform transform hover:scale-110"
+                  onClick={handleNav}
+                />
               ) : (
-                <AiOutlineClose size={25} className="cursor-pointer transition-transform transform hover:scale-110" onClick={handleNav} />
+                <AiOutlineClose
+                  size={25}
+                  className="cursor-pointer transition-transform transform hover:scale-110"
+                  onClick={handleNav}
+                />
               )}
             </div>
             <Link
@@ -102,18 +141,25 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
             <div
               className="hidden md:flex items-center space-x-2 cursor-pointer"
               onClick={userData ? toggleAddressPopup : null}
-              style={{ pointerEvents: userData ? "auto" : "none", opacity: userData ? 1 : 0.5 }}
+              style={{
+                pointerEvents: userData ? "auto" : "none",
+                opacity: userData ? 1 : 0.5,
+              }}
             >
               <span className="text-lg hover:text-orange-500 text-gray-800 truncate md:text-base lg:text-lg">
                 {selectedAddress?.fullAddress
-                  ? `${selectedAddress.fullAddress.flatNo || ''}, ${selectedAddress.fullAddress.area || ''}, ${selectedAddress.fullAddress.city || ''}`
+                  ? `${selectedAddress.fullAddress.flatNo || ""}, ${
+                      selectedAddress.fullAddress.area || ""
+                    }, ${selectedAddress.fullAddress.city || ""}`
                   : "Select Address"}
               </span>
               <AiOutlineDown className="text-gray-800" />
             </div>
             {showAddressPopup && (
               <div className="md:absolute mt-[70px] md:mt-9 w-[300px] md:w-[370px] md:right-[150px] bg-white p-6 rounded-lg shadow-lg z-20">
-                <h2 className="text-lg md:text-xl font-bold mb-4">Select an Address</h2>
+                <h2 className="text-lg md:text-xl font-bold mb-4">
+                  Select an Address
+                </h2>
                 <ul className="space-y-3 max-h-96 overflow-y-auto">
                   {userData?.addresses?.map((address, index) => (
                     <li
@@ -124,9 +170,20 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
                           ? "border-2 border-orange-500 text-gray-800 scale-105"
                           : "bg-gray-200 text-gray-800 hover:border-orange-400 hover:border-2"
                       }`}
-                      style={{ backgroundColor: temporaryAddress?.fullAddress === address.fullAddress ? "white" : "" }}
+                      style={{
+                        backgroundColor:
+                          temporaryAddress?.fullAddress === address.fullAddress
+                            ? "white"
+                            : "",
+                      }}
                     >
-                      {`${address.fullAddress?.flatNo || ''}, ${address.fullAddress?.area || ''}, ${address.fullAddress?.city || ''}, ${address.fullAddress?.state || ''}, ${address.fullAddress?.country || ''}-${address.fullAddress?.zipCode || ''}`}
+                      {`${address.fullAddress?.flatNo || ""}, ${
+                        address.fullAddress?.area || ""
+                      }, ${address.fullAddress?.city || ""}, ${
+                        address.fullAddress?.state || ""
+                      }, ${address.fullAddress?.country || ""}-${
+                        address.fullAddress?.zipCode || ""
+                      }`}
                     </li>
                   ))}
                 </ul>
@@ -155,12 +212,22 @@ const Header = ({ cartItems, addToCart, removeFromCart }) => {
           </div>
 
           <div className="hidden md:flex items-center md:space-x-3 lg:space-x-6 mx-3">
-            <AiOutlineShoppingCart
-              size={25}
-              className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110"
-              onClick={toggleCart}
-            />
-            <Link className="text-gray-800 hover:text-orange-500 text-2xl" to="/order/account/orders">
+            <div className="relative">
+              <AiOutlineShoppingCart
+                size={25}
+                className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110"
+                onClick={toggleCart}
+              />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItems.reduce((total, item) => total + item.quantity, 0)}
+                </span>
+              )}
+            </div>
+            <Link
+              className="text-gray-800 hover:text-orange-500 text-2xl"
+              to="/order/account/orders"
+            >
               <AiOutlineUser className="cursor-pointer text-gray-800 hover:text-orange-500 transition-transform transform hover:scale-110" />
             </Link>
           </div>
