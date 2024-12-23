@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { auth } from "../firebase.config";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import EggBucketImage from '../assets/Images/EggBucket.png';
-import logo from '../assets/Images/logo.png';
+import EggBucketImage from "../assets/Images/EggBucket.png";
+import logo from "../assets/Images/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { fetchUserData } from "../redux/userSlice"; 
+import { fetchUserData } from "../redux/userSlice";
 
 function Login() {
   const [phone, setPhone] = useState("");
@@ -62,7 +62,9 @@ function Login() {
           setMessage("Error sending OTP, please try again.");
         });
     } else {
-      setMessage("reCAPTCHA not initialized properly. Please refresh and try again.");
+      setMessage(
+        "reCAPTCHA not initialized properly. Please refresh and try again."
+      );
     }
   };
 
@@ -75,7 +77,7 @@ function Login() {
         localStorage.setItem("token", token);
         const phoneNumber = currentUser.phoneNumber;
         await dispatch(fetchUserData(phoneNumber)).unwrap();
-       
+
         navigate("/order");
       } catch (error) {
         console.error("Error fetching ID token:", error);
@@ -87,7 +89,8 @@ function Login() {
 
   const verifyOtp = () => {
     if (confirmationResult) {
-      confirmationResult.confirm(otp)
+      confirmationResult
+        .confirm(otp)
         .then((res) => {
           console.log(res);
           setMessage(`Phone verified! Welcome ${res.user.phoneNumber}`);
@@ -103,12 +106,16 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row mt-12">
+    <div className="min-h-screen flex flex-col lg:flex-row mt-12 ">
       <div className="hidden lg:flex lg:w-[700px] bg-[#F0A817] items-center justify-center rounded-r-3xl">
         <div className="text-white mt-3 font-sans">
           <div>
-            <p className="text-3xl ml-9 font-bold text-red-900">Think of an Egg,{" "}</p>
-            <p className="mt-3 ml-[200px] text-3xl font-bold">Think of EggBucket!</p>
+            <p className="text-3xl ml-9 font-bold text-red-900">
+              Think of an Egg,{" "}
+            </p>
+            <p className="mt-3 ml-[200px] text-3xl font-bold">
+              Think of EggBucket!
+            </p>
           </div>
           <img
             src={EggBucketImage}
@@ -126,15 +133,19 @@ function Login() {
           <div className="mb-4">
             <label className="block mb-2">Phone Number</label>
             <div className="flex">
+              <span className="flex items-center px-4 bg-gray-200 border rounded-l-md text-gray-700">
+                +91
+              </span>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91"
+                placeholder="Enter your 10 digits"
                 pattern="[6789][0-9]{9}"
                 className="flex-1 border p-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
-              <div id="recaptcha-container"></div> {/* Ensure this div is always present */}
+              <div id="recaptcha-container"></div>{" "}
+              {/* Ensure this div is always present */}
               <button
                 type="button"
                 onClick={handleLogin}

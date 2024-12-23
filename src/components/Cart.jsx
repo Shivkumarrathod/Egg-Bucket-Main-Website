@@ -1,40 +1,148 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { addItem, decrementItem, removeItem } from "../redux/localStorageSlice";
 import { FiChevronDown } from "react-icons/fi";
+import axios from "axios";
 
-const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSelectedAddress }) => {
-  const [cartItems, setCartItems] = useState([]);
-  const [selectedAddress, setSelectedAddress] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [showSelectAlert, setShowSelectAlert] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [userToken, setUserToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+const Cart = ({ toggleCart }) => {
+  const cartItems = useSelector((state) => state.localStorage.items);
+  const dispatch = useDispatch();
 
   const { userData } = useSelector((state) => state.user);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setUserToken(token);
-
-    // Load cart items from localStorage
-    const savedCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-    setCartItems(savedCartItems);
-
-    // Use the address passed from the header if available, else fallback to the first address from userData
-    if (headerSelectedAddress) {
-      setSelectedAddress(headerSelectedAddress);
-    } 
-    else if (userData?.addresses?.length > 0) {
-      setSelectedAddress(userData.addresses[0]);
-    }
-     
-  }, [headerSelectedAddress, userData]);
-
+  const [addresses, setAddresses] = useState([]); // Stores address data from API
+  const [selectedAddress, setSelectedAddress] = useState(); // Initialize with null
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showSelectAlert, setShowSelectAlert] = useState(false);
   const [localQuantities, setLocalQuantities] = useState({});
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [userToken, setUserToken] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setUserToken(token);
+  }, []);
+
+  useEffect(() => {
+    // Fetch address data from API
+    const fetchAddresses = async () => {
+      try {
+        const response = await fetch(
+          "https://b2c-backend-1.onrender.com/api/v1/order/order"
+        );
+        const data = await response.json();
+
+        console.log("Fetched addresses:", data); // Check the response format
+
+        // Check if orders exist and extract the address information
+        if (data.orders && Array.isArray(data.orders)) {
+          const orderAddresses = data.orders
+            .map((order) => order?.address?.fullAddress) // Safely access fullAddress
+            .filter(Boolean); // Remove undefined or null items
+          setAddresses(orderAddresses); // Store only valid addresses
+        } else {
+          console.error("No valid order data found");
+        }
+
+        // Pre-select the first address if available
+        if (data.orders && data.orders.length > 0) {
+          setSelectedAddress(data.orders[0].address.fullAddress);
+        }
+      } catch (error) {
+        console.error("Failed to fetch addresses:", error);
+      }
+    };
+
+    fetchAddresses();
+  }, []);
+
+  const handleIncrement = (item) => {
+    dispatch(addItem(item));
+  };
+
+  const handleDecrement = (itemId) => {
+    const item = cartItems.find((item) => item.id === itemId);
+    if (item.quantity > 1) {
+      dispatch(decrementItem(itemId));
+    } else {
+      dispatch(removeItem(itemId));
+    }
+  };
+
+  const clearCart = () => {
+    cartItems.forEach((item) => {
+      dispatch(removeItem(item.id)); // Dispatch remove action for each item
+    });
+    setLocalQuantities({}); // Reset local quantities
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!selectedAddress) {
+      setShowSelectAlert(true);
+      return;
+    }
+
+    const customer = userData;
+    if (!customer) {
+      console.error("No customer data found in Redux");
+      return;
+    }
+
+    const products = cartItems.reduce((acc, item) => {
+      let mappedId;
+      if (item.id === 1) {
+        mappedId = "E30";
+      } else if (item.id === 2) {
+        mappedId = "E6";
+      } else if (item.id === 3) {
+        mappedId = "E12";
+      } else {
+        mappedId = item.id; // Use item.id if no mapping exists
+      }
+      acc[mappedId] = localQuantities[item.id];
+      return acc;
+    }, {});
+
+    const orderPayload = {
+      address: selectedAddress,
+      amount: totalPrice,
+      products,
+      customerId: customer.phone,
+    };
+
+    try {
+      setIsLoading(true); // Start loading
+      const response = await axios.post(
+        "https://b2c-backend-1.onrender.com/api/v1/order/order",
+        orderPayload,
+        { validateStatus: () => true } // Avoid throwing errors for HTTP status codes
+      );
+
+      if (response.data.status === "success") {
+        setSuccessMessage("Order placed successfully!");
+        clearCart(); // Clear cart on success
+      } else if (
+        response.data.status === "fail" &&
+        response.data.message ===
+          "No nearby outlets, we will soon expand here!!"
+      ) {
+        setSuccessMessage(response.data.message); // Show failure message
+        setTimeout(() => {
+          setSuccessMessage(""); // Clear message after 5 seconds
+        }, 3000); // Show failure message for 5 seconds
+      } else {
+        setSuccessMessage("Failed to place order. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      setSuccessMessage("Failed to place order. Please try again.");
+    } finally {
+      setIsLoading(false); // End loading
+    }
+  };
 
   useEffect(() => {
     // Update localQuantities when cartItems change
@@ -45,143 +153,18 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
     setLocalQuantities(newLocalQuantities);
   }, [cartItems]);
 
-  const saveCartToLocalStorage = (updatedCart) => {
-    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
-  };
-
-  const handleRemoveFromCart = (productId) => {
-    const updatedCartItems = cartItems.filter(item => item.id !== productId);
-    setCartItems(updatedCartItems);
-    
-    const { [productId]: _, ...updatedQuantities } = localQuantities;
-    setLocalQuantities(updatedQuantities);
-    
-    saveCartToLocalStorage(updatedCartItems);
-    removeFromCart(productId);
-  };
-
-  const incrementQuantity = (product) => {
-    const updatedQuantity = (localQuantities[product.id] || 0) + 1;
-    setLocalQuantities({ ...localQuantities, [product.id]: updatedQuantity });
-    const updatedCartItems = cartItems.map(item =>
-      item.id === product.id ? { ...item, quantity: updatedQuantity } : item
-    );
-    setCartItems(updatedCartItems);
-    saveCartToLocalStorage(updatedCartItems);
-    addToCart({ ...product, quantity: updatedQuantity });
-  };
-
-  const decrementQuantity = (product) => {
-    if (localQuantities[product.id] === 1) {
-      removeFromCart(product.id);
-      const updatedCartItems = cartItems.filter(item => item.id !== product.id);
-      setCartItems(updatedCartItems);
-      saveCartToLocalStorage(updatedCartItems);
-      const { [product.id]: _, ...rest } = localQuantities;
-      setLocalQuantities(rest);
-    } else {
-      const updatedQuantity = localQuantities[product.id] - 1;
-      setLocalQuantities({ ...localQuantities, [product.id]: updatedQuantity });
-      const updatedCartItems = cartItems.map(item =>
-        item.id === product.id ? { ...item, quantity: updatedQuantity } : item
-      );
-      setCartItems(updatedCartItems);
-      saveCartToLocalStorage(updatedCartItems);
-      addToCart({ ...product, quantity: updatedQuantity });
-    }
-  };
-
   const subtotal = cartItems.reduce(
-    (acc, product) => acc + product.price * localQuantities[product.id], 0
+    (acc, item) => acc + item.price * item.quantity,
+    0
   );
-  const shipping = 0;
+  const shipping = 50; // Flat shipping rate
   const totalPrice = subtotal + shipping;
-
-  
-  const handlePlaceOrder = async () => {
-    if (!selectedAddress) {
-      setShowSelectAlert(true);
-      return;
-    }
-  
-    const customer = userData;
-    if (!customer) {
-      console.error('No customer data found in Redux');
-      return;
-    }
-  
-    const products = cartItems.reduce((acc, item) => {
-      let mappedId;
-      if (item.id === 1) {
-        mappedId = "E30";
-      } else if (item.id === 2) {
-        mappedId = "E6";
-      } else if (item.id === 3) {
-        mappedId = "E12";
-      } else {
-        mappedId = item.id;
-      }
-      acc[mappedId] = localQuantities[item.id];
-      return acc;
-    }, {});
-  
-    const orderPayload = {
-      address: selectedAddress,
-      amount: totalPrice,
-      products,
-      // outletId: "OP_1",
-      customerId: customer.phone,
-    };
-    // console.log(orderPayload);
-  
-    try {
-      setIsLoading(true); // Start loading
-      const response = await axios.post(
-        'https://b2c-backend-1.onrender.com/api/v1/order/order',
-        orderPayload,
-        { validateStatus: () => true } 
-      );
-      // console.log(response.data.status)
-  
-      if (response.data.status === "success") {
-        const city = selectedAddress.city || "your location";
-        setSuccessMessage(`Order placed successfully! Delivering to: ${city}`);
-        clearCart(); // Clear cart if the order is successfully placed
-      } else if (response.data.status === "fail" && response.data.message === "No nearby outlets, we will soon expand here!!") {
-        setSuccessMessage(response.data.message); // Display fail message
-      }
-    } catch (error) {
-      console.error('Error placing order:', error);
-      setSuccessMessage('Failed to place order. Please try again.');
-    } finally {
-      setIsLoading(false); // End loading
-      setTimeout(() => {
-        setSuccessMessage(""); // Clear success message after delay
-      }, 2000);
-    }
-  };
-  
- 
-  const clearCart = () => {
-    cartItems.forEach(item => removeFromCart(item.id));
-    setCartItems([]);
-    setLocalQuantities({});
-    saveCartToLocalStorage([]);
-  };
-
-  const handleLoginRedirect = () => {
-    navigate('/order/login');
-  };
-
-  const handleToggleCart = () => {
-    toggleCart();
-  };
 
   return (
     <div className="fixed right-0 top-0 w-96 h-full bg-white shadow-lg p-4 z-50">
       <button
         className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-        onClick={handleToggleCart}
+        onClick={toggleCart}
       >
         Close
       </button>
@@ -193,24 +176,39 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
       ) : (
         <>
           <ul className="space-y-4">
-            {cartItems.map(item => (
+            {cartItems.map((item) => (
               <li key={item.id} className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <img src={item.image} alt={item.name} className="w-16 h-16 mr-4" />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-16 h-16 mr-4"
+                  />
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>
-                    <p>₹{item.price.toFixed(2)} x {localQuantities[item.id]}</p>
+                    <p>
+                      ₹{item.price.toFixed(2)} x {item.quantity}
+                    </p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="bg-gray-200 px-2 py-1" onClick={() => decrementQuantity(item)}>
+                  <button
+                    className="bg-gray-200 px-2 py-1"
+                    onClick={() => handleDecrement(item.id)}
+                  >
                     -
                   </button>
-                  <span className="px-2 py-1 font-bold">{localQuantities[item.id]}</span>
-                  <button className="bg-gray-200 px-2 py-1" onClick={() => incrementQuantity(item)}>
+                  <span className="px-2 py-1 font-bold">{item.quantity}</span>
+                  <button
+                    className="bg-gray-200 px-2 py-1"
+                    onClick={() => handleIncrement(item)}
+                  >
                     +
                   </button>
-                  <button className="bg-red-500 text-white px-2 py-1" onClick={() => handleRemoveFromCart(item.id)}>
+                  <button
+                    className="bg-red-500 text-white px-2 py-1"
+                    onClick={() => dispatch(removeItem(item.id))}
+                  >
                     Remove
                   </button>
                 </div>
@@ -233,41 +231,58 @@ const Cart = ({ addToCart, removeFromCart, toggleCart, selectedAddress: headerSe
             </div>
           </div>
 
-          <div className="relative mt-4">
-            <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex justify-between items-center cursor-pointer border p-2 rounded-md">
-              <span>{selectedAddress.fullAddress ? `${selectedAddress.fullAddress.flatNo}, ${selectedAddress.fullAddress.area}, ${selectedAddress.fullAddress.city}, ${selectedAddress.fullAddress.state}` : 'Select Address'}</span>
-              <FiChevronDown />
+          {/* Address Selection */}
+          {userToken ? (
+            <div className="relative mt-4">
+              <div
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex justify-between items-center cursor-pointer border p-2 rounded-md"
+              >
+                <span>
+                  {selectedAddress?.fullAddress
+                    ? `${selectedAddress.fullAddress.flatNo}, ${selectedAddress.fullAddress.area}, ${selectedAddress.fullAddress.city}, ${selectedAddress.fullAddress.state}`
+                    : "Select Address"}
+                </span>
+
+                <FiChevronDown />
+              </div>
+              {isDropdownOpen && (
+                <ul className="absolute bg-white border rounded-md shadow-lg mt-1 w-full z-30 max-h-80 overflow-y-auto">
+                  {userData?.addresses?.map((address, index) => (
+                    <li
+                      key={index}
+                      onClick={() => {
+                        setSelectedAddress(address);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="p-2 cursor-pointer hover:bg-orange-200"
+                    >
+                      {`${address.fullAddress.flatNo}, ${address.fullAddress.area}, ${address.fullAddress.city}, ${address.fullAddress.state}, ${address.fullAddress.country}-${address.fullAddress.zipCode}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {isDropdownOpen && (
-              <ul className="absolute bg-white border rounded-md shadow-lg mt-1 w-full z-30 max-h-80 overflow-y-auto">
-                {userData?.addresses?.map((address, index) => (
-                  <li 
-                    key={index} 
-                    onClick={() => {
-                      setSelectedAddress(address);
-                      setIsDropdownOpen(false);
-                    }} 
-                    className="p-2 cursor-pointer hover:bg-orange-200"
-                  >
-                    {`${address.fullAddress.flatNo}, ${address.fullAddress.area}, ${address.fullAddress.city}, ${address.fullAddress.state}, ${address.fullAddress.country}-${address.fullAddress.zipCode}`}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          ) : (
+            <p className="mt-4 text-gray-500">
+              Please log in to select a delivery address.
+            </p>
+          )}
 
           <div className="mt-4">
             {userToken ? (
-              <button 
-                onClick={handlePlaceOrder} 
-                className={`bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                disabled={isLoading} // Disable button during loading
+              <button
+                onClick={handlePlaceOrder}
+                className="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
               >
-                {isLoading ? "Placing Order..." : "Place Order"} {/* Show loader text */}
+                Place Order
               </button>
             ) : (
-              <button 
-                onClick={handleLoginRedirect} 
+              <button
+                onClick={() => {
+                  toggleCart();
+                  navigate("/order/login");
+                }} // Adjust the path based on your routing setup
                 className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
               >
                 Login

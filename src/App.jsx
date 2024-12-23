@@ -6,7 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { Provider } from "react-redux";
-import { store } from "./redux/store"; 
+import { store } from "./redux/store";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -26,26 +26,24 @@ import { useDispatch } from "react-redux";
 import { fetchUserData } from "./redux/userSlice";
 import { auth } from "./firebase.config";
 import { onAuthStateChanged } from "firebase/auth";
+import Login from "./components/Login";
 
 const App = () => {
   const location = useLocation();
   const isB2CPage = location.pathname.startsWith("/order");
   const dispatch = useDispatch();
 
-  
   useEffect(() => {
     const token = localStorage.getItem("token");
-  
+
     // Firebase listener for authentication state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && token) {
-        
         const phoneNumber = user.phoneNumber;
         dispatch(fetchUserData(phoneNumber));
-      } 
+      }
     });
-  
-    
+
     return () => unsubscribe();
   }, [dispatch]);
 
@@ -62,6 +60,7 @@ const App = () => {
         <Route path="/ourfounders" element={<Ourfounders />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/order/*" element={<Order />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
 
       {!isB2CPage && <Footer />}
@@ -71,10 +70,9 @@ const App = () => {
 
 const AppWrapper = () => (
   <Provider store={store}>
-
-  <Router>
-    <App />
-  </Router>
+    <Router>
+      <App />
+    </Router>
   </Provider>
 );
 
