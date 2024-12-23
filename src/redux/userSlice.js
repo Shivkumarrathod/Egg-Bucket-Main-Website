@@ -42,9 +42,7 @@ const userSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {
-
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchUserData.pending, (state) => {
@@ -52,14 +50,16 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUserData.fulfilled, (state, action) => {
-        state.loading = false;
         state.userData = action.payload;
+        state.loading = false;
       })
       .addCase(fetchUserData.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.payload;
+        state.loading = false;
       });
   },
 });
 
 export default userSlice.reducer;
+
+
