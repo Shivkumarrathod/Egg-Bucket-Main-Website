@@ -253,14 +253,14 @@ const Navbar = () => {
               </Link>
             </li>
 
-            <li>
+            {/* <li>
               <Link to="/order">
                          <button className="bg-gradient-to-r from-[#f87709] to-[#f88a12] text-white px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 w-full flex justify-center items-center space-x-2">
                   <span>Order Now</span>
                   <MdShoppingCart className="w-6 h-6" />
                 </button>
               </Link>
-            </li>
+            </li> */}
           </ul>
         </div>
       )}
