@@ -147,12 +147,12 @@ const Navbar = () => {
             </li>
           </ul>
 
-{/*           <Link to="/order" className="hidden md:inline-block">
+          <Link to="/order" className="hidden md:inline-block">
             <button className="bg-gradient-to-r from-[#f87709] to-[#f88a12] text-white px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center space-x-2">
               <span>Order Now</span>
               <MdShoppingCart className="w-6 h-6" />
             </button>
-          </Link> */}
+          </Link>
         </div>
 
         {/* Hamburger Menu for Mobile */}
