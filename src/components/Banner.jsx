@@ -4,6 +4,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import eggTrayImage from "../assets/Images/pngwing.com (2).png";
 import { Link } from "react-router-dom";
+import { MdShoppingCart } from "react-icons/md";
 
 const Banner = () => {
   const { scrollY } = useScroll();
@@ -64,6 +65,18 @@ const Banner = () => {
             >
               Join as Retailer
             </button>
+          </Link>
+          <Link to="/order">
+            <div className="md:hidden flex justify-center items-center">
+              <button
+                className="bg-[#f87709] text-white flex text-base px-4 sm:px-6 py-2 sm:py-3 rounded-full transition-transform transform hover:scale-105"
+                data-aos="fade-up"
+                data-aos-delay="600"
+              >
+                Order Now
+            <MdShoppingCart className="w-6 h-6" />
+              </button>
+            </div>
           </Link>
         </div>
       </div>
