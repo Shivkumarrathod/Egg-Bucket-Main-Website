@@ -110,7 +110,7 @@ const Cart = ({ toggleCart }) => {
       address: selectedAddress,
       amount: totalPrice,
       products,
-      customerId: customer.phone,
+      customerId: customer.phoneNumber,
     };
 
     try {
@@ -176,8 +176,11 @@ const Cart = ({ toggleCart }) => {
       ) : (
         <>
           <ul className="space-y-4">
-            {cartItems.map((item) => (
-              <li key={item.id} className="flex justify-between items-center">
+            {cartItems.map((item, index) => (
+              <li
+                key={item.id || index}
+                className="flex justify-between items-center"
+              >
                 <div className="flex items-center">
                   <img
                     src={item.image}
@@ -187,7 +190,8 @@ const Cart = ({ toggleCart }) => {
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>
                     <p>
-                      ₹{item.price.toFixed(2)} x {item.quantity}
+                      ₹{item.price ? item.price.toFixed(2) : "0.00"} x{" "}
+                      {item.quantity}
                     </p>
                   </div>
                 </div>

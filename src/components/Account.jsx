@@ -22,17 +22,19 @@ import { useNavigate } from "react-router-dom";
 function Account() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
   const { userData, loading, error } = useSelector((state) => state.user);
 
   useEffect(() => {
     const currentUser = auth.currentUser;
     console.log("Current Authenticated User:", currentUser);
+
     if (currentUser && currentUser.phoneNumber) {
       const phoneNumber = currentUser.phoneNumber;
       dispatch(fetchUserData(phoneNumber));
     } else {
       console.log(
-        "No user is currently authenticated or no phone number found."
+        "No user is currently authenticated or no phoneNumber number found."
       );
       navigate("/login"); // Redirect to login page if user is not authenticated
     }
@@ -54,11 +56,12 @@ function Account() {
       .signOut()
       .then(() => {
         // Clear specific items from local storage
-        localStorage.removeItem("token"); // Remove token
-        localStorage.removeItem("customerName"); // Remove customer name if stored
-        localStorage.removeItem("outletId"); // Remove outlet ID if stored
-        localStorage.removeItem("deliveryPartnerId"); // Remove delivery partner ID if stored
-        localStorage.removeItem("selectedAddress"); // Remove delivery partner ID if stored
+        localStorage.clear();
+        // localStorage.removeItem("token"); // Remove token
+        // localStorage.removeItem("customerName"); // Remove customer name if stored
+        // localStorage.removeItem("outletId"); // Remove outlet ID if stored
+        // localStorage.removeItem("deliveryPartnerId"); // Remove delivery partner ID if stored
+        // localStorage.removeItem("selectedAddress"); // Remove delivery partner ID if stored
 
         // Navigate to login page
         navigate("/order/login");
@@ -108,7 +111,7 @@ function Account() {
                 <h2 className="text-xl mt-4 font-bold text-center">
                   Welcome, {userData.name}
                 </h2>
-                <p className="text-gray-600 text-center">+{userData.phone}</p>
+                <p className="text-gray-600 text-center">+{userData.phoneNumber}</p>
               </div>
             </div>
 

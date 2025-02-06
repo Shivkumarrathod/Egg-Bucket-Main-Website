@@ -16,7 +16,7 @@ const Addresses = () => {
   const handleAddCloseModal = () => setIsAdding(false);
 
   const handleDeleteAddress = async (addressId, addressIndex) => {
-    const phoneNumber = userData.phone;
+    const phoneNumber = userData.phoneNumber;
     const updatedAddresses = addresses.filter((address) => address.id !== addressId);
 
     const updatedUserData = {

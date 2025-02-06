@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import L from 'leaflet';
@@ -11,6 +10,11 @@ const AddAddress = ({ onClose }) => {
   const { userData } = useSelector((state) => state.user);
 
   const [formData, setFormData] = useState({
+    name: '',
+    phoneNumber: userData?.phoneNumber || '', // Pre-fill phoneNumber number from userData
+    email: '',
+    age: '',
+    gender: '',
     flatNo: '',
     addressLine1: '',
     addressLine2: '',
@@ -131,21 +135,35 @@ const AddAddress = ({ onClose }) => {
 
     setIsLoading(true);
     const coordinates = marker
-      ? { lat: marker.getLatLng().lat, long: marker.getLatLng().lng } 
+      ? { lat: marker.getLatLng().lat, long: marker.getLatLng().lng }
       : { lat: null, long: null };
 
-    
     const newAddress = {
-      fullAddress: { ...formData }, 
+      fullAddress: {
+        flatNo: formData.flatNo,
+        addressLine1: formData.addressLine1,
+        addressLine2: formData.addressLine2,
+        area: formData.area,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        country: formData.country,
+      },
       coordinates,
     };
-    const phoneNumber = userData.phone;
-    const updatedUserData = { addresses: JSON.stringify([newAddress]) };
-   
+
+    const updatedUserData = {
+      name: formData.name,
+      phoneNumber: formData.phoneNumber,
+      email: formData.email,
+      age: formData.age,
+      gender: formData.gender,
+      addresses: JSON.stringify([newAddress]), // Stringify the addresses array
+    };
 
     try {
       const response = await fetch(
-        ` https://b2c-backend-1.onrender.com/api/v1/customer/user/${phoneNumber}`,
+        `https://b2c-backend-1.onrender.com/api/v1/customer/user/${formData.phoneNumber}`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -154,7 +172,7 @@ const AddAddress = ({ onClose }) => {
       );
 
       if (response.ok) {
-        dispatch(fetchUserData(phoneNumber));
+        dispatch(fetchUserData(formData.phoneNumber));
         onClose();
       } else {
         console.error('Failed to add address:', await response.text());
@@ -201,20 +219,72 @@ const AddAddress = ({ onClose }) => {
 
           {useLocation !== null && (
             <form className="space-y-4">
-              {Object.keys(formData).map((key) => (
-                <input
-                  key={key}
-                  type="text"
-                  name={key}
-                  value={formData[key]}
-                  onChange={handleChange}
-                  className={`w-full p-2 border rounded-lg ${
-                    invalidFields[key] ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder={key.replace(/([A-Z])/g, ' $1')}
-                  required
-                />
-              ))}
+              {/* New fields */}
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${
+                  invalidFields.name ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Name"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${
+                  invalidFields.email ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Email"
+                required
+              />
+              {/* <input
+                type="number"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${
+                  invalidFields.age ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Age"
+                required
+              /> */}
+              {/* <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded-lg ${
+                  invalidFields.gender ? 'border-red-500' : 'border-gray-300'
+                }`}
+                required
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select> */}
+
+              {/* Existing address fields */}
+              {Object.keys(formData)
+                .filter((key) => !['name', 'phoneNumber', 'email', 'age', 'gender'].includes(key))
+                .map((key) => (
+                  <input
+                    key={key}
+                    type="text"
+                    name={key}
+                    value={formData[key]}
+                    onChange={handleChange}
+                    className={`w-full p-2 border rounded-lg ${
+                      invalidFields[key] ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder={key.replace(/([A-Z])/g, ' $1')}
+                    required
+                  />
+                ))}
             </form>
           )}
 

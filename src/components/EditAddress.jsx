@@ -35,7 +35,7 @@ const EditAddress = ({ address, onClose, onAddressUpdated }) => {
     setError(''); // Clear any existing errors
 
     try {
-      const phoneNumber = userData.phone; // Assuming user's phone is fetched correctly
+      const phoneNumber = userData.phoneNumber; // Assuming user's phoneNumber is fetched correctly
 
       const payload = {
         addresses: [

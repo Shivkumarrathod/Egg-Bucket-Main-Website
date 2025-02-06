@@ -21,7 +21,7 @@ const Profile = () => {
   // Handle profile update
   const handleProfileUpdate = async (updatedProfile) => {
     try {
-      const phoneNumber = userData.phone;
+      const phoneNumber = userData.phoneNumber;
       const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.slice(1) : phoneNumber;
 
       setIsLoading(true); // Start loading
@@ -78,7 +78,7 @@ const Profile = () => {
           <p className="flex items-center">
             <strong className="w-24 text-xl font-semibold">Mobile:</strong>
             <span className="ml-2 w-full p-2 border-2 border-x-gray-100 rounded-lg text-lg font-normal">
-              {userData.phone.slice(2) || 'N/A'}
+              {userData.phoneNumber.slice(2) || 'N/A'}
             </span>
           </p>
           <p className="flex items-center">

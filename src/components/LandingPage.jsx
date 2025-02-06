@@ -9,35 +9,18 @@ import bg from "../assets/Images/hero-section-carousel-bg.svg";
 import { useSelector, useDispatch } from "react-redux";
 import { addItem, removeItem, decrementItem } from "../redux/localStorageSlice";
 
-const productsData = [
-  {
-    id: 1,
-    name: "30 Pcs Egg Tray",
-    price: 209.0,
-    originalPrice: 239.0,
-    image: pc30,
-  },
-  {
-    id: 2,
-    name: "6 Pcs Egg Tray",
-    price: 42.0,
-    originalPrice: 48.0,
-    image: pc6,
-  },
-  {
-    id: 3,
-    name: "12 Pcs Egg Tray",
-    price: 84.0,
-    originalPrice: 92.0,
-    image: pc12,
-  },
-];
+const imageMapping = {
+  "6pc_tray": pc6,
+  "12pc_tray": pc12,
+  "30pc_tray": pc30,
+};
 
 const LandingPage = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.localStorage.items);
 
   const [popupVisible, setPopupVisible] = useState(false);
+  const [products, setProducts] = useState([]);
 
   const handleIncrement = (product) => {
     dispatch(addItem(product));
@@ -52,13 +35,12 @@ const LandingPage = () => {
     }
   };
 
-  // const handleAddToCart = (product) => {
-  //   dispatch(addItem({ ...product, quantity: 1 }));
-  //   setPopupVisible(true);
-  //   setTimeout(() => setPopupVisible(false), 1000);
-  // };
-
   const handleAddToCart = (product) => {
+    if (product.countInStock === 0) {
+      alert("This item is currently out of stock.");
+      return;
+    }
+
     const existingProduct = cartItems.find((item) => item.id === product.id);
     if (existingProduct) {
       dispatch(
@@ -75,6 +57,34 @@ const LandingPage = () => {
     const item = cartItems.find((item) => item.id === productId);
     return item ? item.quantity : 0;
   };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          "https://b2c-backend-1.onrender.com/api/v1/admin/getallproducts"
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const fetchedProducts = await response.json();
+        const mappedProducts = fetchedProducts.map((product) => ({
+          id: product.id,
+          name: product.name,
+          price: parseFloat(product.price),
+          discount: product.discount,
+          originalPrice: parseFloat(product.currentPrice),
+          image: imageMapping[product.name] || pc6, // Default to pc6 if no match
+          countInStock: product.countInStock || 0, // Ensure countInStock is included
+        }));
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div className="bg-white min-h-screen font-poppins mt-12 relative">
@@ -99,9 +109,6 @@ const LandingPage = () => {
                 <br /> Directly To Your <br />
                 Table
               </h2>
-              {/* <button className="bg-orange-500 text-white px-6 py-3 rounded-full flex items-center justify-center transform transition-transform duration-700 hover:scale-110">
-                Subscribe
-              </button> */}
               <p className="mt-4 text-black font-semibold">
                 Subscribe Now For Daily And Weekly Delivery
               </p>
@@ -131,7 +138,7 @@ const LandingPage = () => {
           Our Products
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {productsData.map((product) => (
+          {products.map((product) => (
             <div
               key={product.id}
               className="bg-white rounded-3xl shadow-lg overflow-hidden border border-black transition-transform duration-300 hover:scale-105"
@@ -149,13 +156,23 @@ const LandingPage = () => {
                   <span className="text-md text-gray-500 line-through mt-2 block">
                     ₹ {product.originalPrice.toFixed(2)}
                   </span>
+                  <span className="text-sm text-green-600 mt-1">
+                    {product.discount}% OFF`
+                  </span>
                 </div>
               </div>
               <div className="flex flex-col bg-gradient-to-r from-yellow-300 to-orange-300 p-4 rounded-2xl">
                 <h4 className="text-lg font-bold text-center">
                   {product.name}
                 </h4>
-                {getProductQuantity(product.id) > 0 ? (
+                {product.countInStock === 0 ? (
+                  <button
+                    className="bg-gray-400 text-white px-4 py-2 rounded-md mt-4 w-full cursor-not-allowed"
+                    disabled
+                  >
+                    Out of Stock
+                  </button>
+                ) : getProductQuantity(product.id) > 0 ? (
                   <div className="flex items-center justify-between mt-4">
                     <button
                       className="bg-gray-200 p-2 rounded-md"
