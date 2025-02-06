@@ -6,9 +6,11 @@ import logo from "../assets/Images/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchUserData } from "../redux/userSlice";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../firebase.config";
 
 function Login() {
-  const [phone, setPhone] = useState("");
+  const [phoneNumber, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
@@ -18,7 +20,13 @@ function Login() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Ensure the recaptcha container is present
+    // Redirect to dashboard if a token exists in localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/order");
+    }
+
+    // Initialize reCAPTCHA
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(
         "recaptcha-container",
@@ -42,11 +50,11 @@ function Login() {
         delete window.recaptchaVerifier; // Remove the reference to avoid reinitialization
       }
     };
-  }, []);
+  }, [navigate]);
 
   const handleLogin = () => {
     const appVerifier = window.recaptchaVerifier;
-    const formatPh = `+91${phone}`;
+    const formatPh = `+91${phoneNumber}`;
     console.log(formatPh);
 
     if (appVerifier) {
@@ -75,26 +83,45 @@ function Login() {
       try {
         const token = await currentUser.getIdToken(false);
         localStorage.setItem("token", token);
-        const phoneNumber = currentUser.phoneNumber;
-        await dispatch(fetchUserData(phoneNumber)).unwrap();
 
-        navigate("/order");
+        // Format the phoneNumber number to remove "+91" if present
+        const phoneNumber = currentUser.phoneNumber.startsWith("+91")
+          ? currentUser.phoneNumber.slice(3) // Remove "+91"
+          : currentUser.phoneNumber;
+
+        const userDocRef = doc(db, "Customer", phoneNumber); // Use formatted phoneNumber as doc ID
+        await setDoc(userDocRef, { phoneNumber }, { merge: true });
+
+        try {
+          // Dispatch fetchUserData with the formatted phoneNumber number
+          await dispatch(fetchUserData(phoneNumber)).unwrap();
+          navigate("/order");
+        } catch (userFetchError) {
+          console.error(
+            "User data not found, proceeding to order",
+            userFetchError
+          );
+          navigate("/order");
+        }
       } catch (error) {
         console.error("Error fetching ID token:", error);
+        setMessage("Authentication failed. Please try again.");
       }
     } else {
       console.error("Couldn't verify user");
+      setMessage("User verification failed.");
     }
   };
+
 
   const verifyOtp = () => {
     if (confirmationResult) {
       confirmationResult
         .confirm(otp)
-        .then((res) => {
+        .then(async (res) => {
           console.log(res);
-          setMessage(`Phone verified! Welcome ${res.user.phoneNumber}`);
-          setIdToken();
+          setMessage(`phoneNumber verified! Welcome ${res.user.phoneNumber}`);
+          await setIdToken();
         })
         .catch((err) => {
           console.error(err);
@@ -131,21 +158,20 @@ function Login() {
 
         <form className="w-full max-w-md">
           <div className="mb-4">
-            <label className="block mb-2">Phone Number</label>
+            <label className="block mb-2">phoneNumber Number</label>
             <div className="flex">
               <span className="flex items-center px-4 bg-gray-200 border rounded-l-md text-gray-700">
                 +91
               </span>
               <input
                 type="text"
-                value={phone}
+                value={phoneNumber}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Enter your 10 digits"
                 pattern="[6789][0-9]{9}"
                 className="flex-1 border p-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <div id="recaptcha-container"></div>{" "}
-              {/* Ensure this div is always present */}
               <button
                 type="button"
                 onClick={handleLogin}

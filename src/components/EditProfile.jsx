@@ -69,9 +69,9 @@ const EditProfile = ({ profile, onProfileUpdate, onCancel }) => {
             <input
               type="tel"
               name="mobile"
-              value={formData.phone.slice(2)}
+              value={formData.phoneNumber.slice(2)}
               className="w-full px-4 py-2 border-2 rounded-md bg-gray-100 cursor-not-allowed"
-              readOnly  // Prevent user from editing phone number
+              readOnly  // Prevent user from editing phoneNumber number
             />
           </div>
 
