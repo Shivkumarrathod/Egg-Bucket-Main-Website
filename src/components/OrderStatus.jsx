@@ -16,11 +16,14 @@ const Orders = () => {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   useEffect(() => {
-    if (userData && userData.phone) {
-      console.log("User Phone Number:", userData.phone);
-      dispatch(fetchOrdersForCustomer(userData.phone));
+
+    if (userData && userData.phoneNumber) {
+
+      console.log("User phoneNumber Number:", userData.phoneNumber);
+      
+      dispatch(fetchOrdersForCustomer(userData.phoneNumber));
     } else {
-      console.error("Phone number is missing in userData.");
+      console.error("phoneNumber number is missing in userData.");
     }
   }, [userData, dispatch]);
 

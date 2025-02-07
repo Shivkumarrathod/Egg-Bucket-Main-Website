@@ -68,12 +68,18 @@ const App = () => {
   );
 };
 
-const AppWrapper = () => (
-  <Provider store={store}>
-    <Router>
-      <App />
-    </Router>
-  </Provider>
-);
+export default App;
 
-export default AppWrapper;
+// const AppWrapper = () => (
+//   <Provider store={store}>
+
+//     <Router>
+
+//       <App />
+
+//     </Router>
+    
+//   </Provider>
+// );
+
+// export default AppWrapper;

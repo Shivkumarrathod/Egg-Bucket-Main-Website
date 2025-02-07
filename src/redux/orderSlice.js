@@ -8,11 +8,12 @@ export const fetchOrdersForCustomer = createAsyncThunk(
   'orders/fetchOrdersForCustomer',
   async (phoneNumber, { rejectWithValue }) => {
     try {
-      const formattedPhoneNumber = phoneNumber.startsWith('+')
-        ? phoneNumber.slice(1)
+      
+      const formattedPhoneNumber = phoneNumber.startsWith('+91')
+        ? phoneNumber.slice(3)
         : phoneNumber;
 
-      console.log("Fetching orders for customerId (phone number):", formattedPhoneNumber);
+      console.log("Fetching orders for customerId (phoneNumber number):", formattedPhoneNumber);
 
       const ordersRef = collection(db, 'Order');
       const q = query(ordersRef, where('customerId', '==', formattedPhoneNumber));

@@ -6,34 +6,34 @@ import { doc, getDoc } from 'firebase/firestore';
 
 
 export const fetchUserData = createAsyncThunk(
-  'user/fetchUserData',
+  "user/fetchUserData",
   async (phoneNumber, { rejectWithValue }) => {
     try {
-     
-
-      const formattedPhoneNumber = phoneNumber.startsWith('+')
-        ? phoneNumber.slice(1)
+      // Ensure phoneNumber does not have "+91"
+      const formattedPhoneNumber = phoneNumber.startsWith("+91")
+        ? phoneNumber.slice(3) // Remove "+91"
         : phoneNumber;
 
-      console.log("Formatted Phone Number for Firestore Query:", formattedPhoneNumber);
+      console.log("Formatted phoneNumber Number for Firestore Query:", formattedPhoneNumber);
 
-
-      const docRef = doc(db, 'Customer', formattedPhoneNumber);
+      const docRef = doc(db, "Customer", formattedPhoneNumber); // Use formatted phoneNumber
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
         const userData = docSnap.data();
-      
-        return userData;  
+        console.log("userdata redux file",userData.phoneNumber);
+        return userData;
       } else {
-        return rejectWithValue('User not found');
+        return rejectWithValue("User not found");
       }
+      
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      return rejectWithValue('Failed to fetch user data');
+      console.error("Error fetching user data:", error);
+      return rejectWithValue("Failed to fetch user data");
     }
   }
 );
+
 
 const userSlice = createSlice({
   name: 'user',
@@ -42,6 +42,7 @@ const userSlice = createSlice({
     loading: false,
     error: null,
   },
+  
   reducers: {},
   extraReducers: (builder) => {
     builder
