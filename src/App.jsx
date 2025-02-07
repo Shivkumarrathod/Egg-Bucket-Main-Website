@@ -68,16 +68,18 @@ const App = () => {
   );
 };
 
-const AppWrapper = () => (
-  <Provider store={store}>
+export default App;
 
-    <Router>
+// const AppWrapper = () => (
+//   <Provider store={store}>
 
-      <App />
+//     <Router>
 
-    </Router>
+//       <App />
+
+//     </Router>
     
-  </Provider>
-);
+//   </Provider>
+// );
 
-export default AppWrapper;
+// export default AppWrapper;
