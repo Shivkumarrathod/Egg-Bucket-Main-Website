@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import bglogo from "../assets/Images/logo.png";
 import {
@@ -22,6 +22,32 @@ const Header = ({ addToCart, removeFromCart }) => {
   const [temporaryAddress, setTemporaryAddress] = useState(null);
   const [showAddAddress, setShowAddAddress] = useState(false);
   const cartItems = useSelector((state) => state.localStorage.items);
+  
+  // Add ref for the address popup
+  const addressPopupRef = useRef(null);
+
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (addressPopupRef.current && !addressPopupRef.current.contains(event.target)) {
+        // Check if the click wasn't on the toggle button
+        const toggleButton = document.querySelector('[data-address-toggle]');
+        if (!toggleButton?.contains(event.target)) {
+          setShowAddressPopup(false);
+        }
+      }
+    };
+
+    // Add event listener when popup is open
+    if (showAddressPopup) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAddressPopup]);
 
   // Load address from localStorage if available
   useEffect(() => {
@@ -100,6 +126,7 @@ const Header = ({ addToCart, removeFromCart }) => {
               <AiOutlineDown
                 className="text-gray-600 hover:text-orange-500 text-2xl"
                 onClick={toggleAddressPopup}
+                data-address-toggle
               />
               <AiOutlineShoppingCart
                 size={25}
@@ -145,6 +172,7 @@ const Header = ({ addToCart, removeFromCart }) => {
                 pointerEvents: userData ? "auto" : "none",
                 opacity: userData ? 1 : 0.5,
               }}
+              data-address-toggle
             >
               <span className="text-lg hover:text-orange-500 text-gray-800 truncate md:text-base lg:text-lg">
                 {selectedAddress?.fullAddress
@@ -156,7 +184,10 @@ const Header = ({ addToCart, removeFromCart }) => {
               <AiOutlineDown className="text-gray-800" />
             </div>
             {showAddressPopup && (
-              <div className="md:absolute mt-[70px] md:mt-9 w-[300px] md:w-[370px] md:right-[150px] bg-white p-6 rounded-lg shadow-lg z-20">
+              <div 
+                ref={addressPopupRef}
+                className="md:absolute mt-[70px] md:mt-9 w-[300px] md:w-[370px] md:right-[150px] bg-white p-6 rounded-lg shadow-lg z-20"
+              >
                 <h2 className="text-lg md:text-xl font-bold mb-4">
                   Select an Address
                 </h2>

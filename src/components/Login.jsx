@@ -31,7 +31,7 @@ function Login() {
       window.recaptchaVerifier = new RecaptchaVerifier(
         "recaptcha-container",
         {
-          size: "normal",
+          size: "invisible",
           callback: () => {
             console.log("reCAPTCHA verified");
           },
