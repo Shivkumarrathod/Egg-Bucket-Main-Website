@@ -8,6 +8,7 @@ import { fetchUserData } from '../redux/userSlice';
 const AddAddress = ({ onClose }) => {
   const dispatch = useDispatch();
   const { userData } = useSelector((state) => state.user);
+  
 
   const [formData, setFormData] = useState({
     name: '',
@@ -36,14 +37,16 @@ const AddAddress = ({ onClose }) => {
   const [marker, setMarker] = useState(null);
 
   // At the start of your component, add this useEffect
-useEffect(() => {
-  if (userData?.phoneNumber) {
-    setFormData(prev => ({
-      ...prev,
-      phoneNumber: userData.phoneNumber
-    }));
-  }
-}, [userData]);
+// useEffect(() => {
+//   if (userData?.phoneNumber) {
+//     setFormData(prev => ({
+//       ...prev,
+//       phoneNumber: userData.phoneNumber,
+//       name: userData.name
+//     }));
+//     console.log("name"+userData?.name);
+//   }
+// }, [userData]);
 
   const handleChange = (e) => {
     console.log('Input changed:', e.target.name, e.target.value);  // Log input changes
@@ -251,7 +254,7 @@ useEffect(() => {
                 placeholder="Name"
                 required
               />
-              <input
+              {/* <input
                 type="email"
                 name="email"
                 value={formData.email}
@@ -261,7 +264,7 @@ useEffect(() => {
                 }`}
                 placeholder="Email"
                 required
-              />
+              /> */}
               <input
                 type="text"
                 name="flatNo"
