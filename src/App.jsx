@@ -70,9 +70,13 @@ const App = () => {
 
 const AppWrapper = () => (
   <Provider store={store}>
+
     <Router>
+
       <App />
+
     </Router>
+    
   </Provider>
 );
 

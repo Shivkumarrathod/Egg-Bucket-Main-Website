@@ -31,7 +31,7 @@ function Login() {
       window.recaptchaVerifier = new RecaptchaVerifier(
         "recaptcha-container",
         {
-          size: "invisible",
+          size: "normal",
           callback: () => {
             console.log("reCAPTCHA verified");
           },
@@ -113,7 +113,6 @@ function Login() {
     }
   };
 
-
   const verifyOtp = () => {
     if (confirmationResult) {
       confirmationResult
@@ -133,7 +132,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row mt-12 ">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row mt-12">
       <div className="hidden lg:flex lg:w-[700px] bg-[#F0A817] items-center justify-center rounded-r-3xl">
         <div className="text-white mt-3 font-sans">
           <div>
@@ -147,7 +146,7 @@ function Login() {
           <img
             src={EggBucketImage}
             alt="Egg Bucket Product"
-            className="h-[520px] mx-auto object-contain"
+            className="h-auto w-full max-w-xs mx-auto object-contain"
           />
         </div>
       </div>
@@ -156,7 +155,7 @@ function Login() {
         <h2 className="text-3xl font-semibold mb-2">Login to your Account</h2>
         <p className="text-gray-500 mb-6">Welcome to Eggbucket</p>
 
-        <form className="w-full max-w-md">
+        <form className="w-full max-w-md mx-auto px-4">
           <div className="mb-4">
             <label className="block mb-2">phoneNumber Number</label>
             <div className="flex">
