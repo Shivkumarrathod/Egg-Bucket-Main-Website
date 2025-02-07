@@ -143,13 +143,12 @@ const AddAddress = ({ onClose }) => {
   };
 
   const handleSaveAddress = async () => {
-    console.log('Phone Number being used:', formData.phone);
-    
+    console.log('Phone Number being used:', formData.phoneNumber);
+  
     const coordinates = marker
       ? { lat: marker.getLatLng().lat, long: marker.getLatLng().lng }
       : { lat: null, long: null };
-
-    // Create the address object in the correct format
+  
     const addressObject = {
       fullAddress: {
         flatNo: formData.flatNo,
@@ -161,19 +160,24 @@ const AddAddress = ({ onClose }) => {
       },
       coordinates
     };
-
-    // Create the user data object with stringified addresses array
+  
+    // Ensure addresses is an array and not a string
     const updatedUserData = {
       name: formData.name,
-      phone: formData.phone, // Changed from phoneNumber to phone
+      phoneNumber: formData.phoneNumber, // Ensure consistency with backend field names
       email: formData.email,
-      age: parseInt(formData.age) || 0, // Ensure age is a number
-      addresses: JSON.stringify([addressObject]), // Stringify the addresses array
-      removeAddr: 0 // Added as per required format
+      age: parseInt(formData.age) || 0,
+      addresses: [addressObject], // Pass it as an array, not a string
     };
-
+  
+    // Conditionally add removeAddr if address data exists
+    if (updatedUserData.addresses.length >1) {
+      updatedUserData.removeAddr = 0; // Ensure it's present only when address data exists
+    }
+    
+  
     console.log('Data being sent:', JSON.stringify(updatedUserData, null, 2));
-
+  
     try {
       const response = await fetch(
         `https://b2c-backend-1.onrender.com/api/v1/customer/user/${userData?.phoneNumber}`,
@@ -181,19 +185,18 @@ const AddAddress = ({ onClose }) => {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
           },
-          body: JSON.stringify(updatedUserData)
+          body: JSON.stringify(updatedUserData),
         }
       );
-
+  
       const responseData = await response.json();
       console.log('Response status:', response.status);
       console.log('Response data:', responseData);
-
+  
       if (response.ok) {
         console.log('Address saved successfully');
-        dispatch(fetchUserData(formData.phone));
+        dispatch(fetchUserData(formData.phoneNumber));
         onClose();
       } else {
         console.error('Failed to add address:', responseData);
@@ -206,6 +209,7 @@ const AddAddress = ({ onClose }) => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
