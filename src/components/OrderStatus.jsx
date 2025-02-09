@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux"; // Add this line
-import { fetchOrdersForCustomer } from "../redux/orderSlice";
+import { useDispatch, useSelector } from "react-redux";
 import egg6 from "../assets/Images/six.jpg";
 import egg12 from "../assets/Images/twleve.jpg";
 import egg30 from "../assets/Images/thirty.jpg";
@@ -8,76 +7,98 @@ import egg30 from "../assets/Images/thirty.jpg";
 const Orders = () => {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.user.userData);
-  const ordersData = useSelector((state) => state.orders.ordersData);
-  const ordersLoading = useSelector((state) => state.orders.loading);
-  const ordersError = useSelector((state) => state.orders.error);
-
-  // State to manage expanded order
+  const [ordersData, setOrdersData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   useEffect(() => {
+    const fetchOrders = async () => {
+      if (!userData?.phoneNumber) {
+        console.error("Phone number is missing in userData.");
+        return;
+      }
 
-    if (userData && userData.phoneNumber) {
+      setIsLoading(true);
+      try {
+        // Get the authentication token from localStorage or wherever you store it
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(
+          `https://b2c-backend-1.onrender.com/api/v1/order/order?phoneNumber=${userData.phoneNumber}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // Add the token if required
+            }
+          }
+        );
 
-      console.log("User phoneNumber Number:", userData.phoneNumber);
-      
-      dispatch(fetchOrdersForCustomer(userData.phoneNumber));
-    } else {
-      console.error("phoneNumber number is missing in userData.");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched orders:", data); // Debug log
+        
+        if (data && Array.isArray(data.orders)) {
+          setOrdersData(data.orders);
+        } else {
+          throw new Error('Invalid data format received');
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching orders:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userData?.phoneNumber) {
+      fetchOrders();
     }
-  }, [userData, dispatch]);
+  }, [userData]);
 
-  useEffect(() => {
-    console.log("Fetched Orders Data:", ordersData); // This will log whenever the ordersData changes
-  }, [ordersData]);
-
-  if (ordersLoading) return <p>Loading...</p>;
-  if (ordersError) return <p>Error: {ordersError}</p>;
-
-  // Sort orders by createdAt date in descending order (latest first)
-  const sortedOrders = ordersData
-    .slice()
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  console.log("Sorted orders is=", sortedOrders); // Check the structure after sorting
-
-  // Function to match the product name to its corresponding image
   const getImageByName = (name) => {
     switch (name.toLowerCase()) {
+      case "6pc_tray":
       case "e6":
         return egg6;
+      case "12pc_tray":
       case "e12":
         return egg12;
+      case "30pc_tray":
       case "e30":
         return egg30;
       default:
+        console.warn(`Image not found for product: ${name}`);
         return egg6;
     }
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      })
-      .replace(" at", ",");
+  const formatDate = (timestamp) => {
+    if (!timestamp?._seconds) return "Invalid date";
+    
+    const date = new Date(timestamp._seconds * 1000);
+    return date.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).replace(" at", ",");
   };
 
-  // Map fetched data to product names and quantities
   const mapOrderItems = (products) => {
-    return Object.keys(products).map((productCode) => ({
-      name: productCode.toLowerCase(),
-      quantity: products[productCode],
+    return Object.values(products).map(product => ({
+      name: product.name,
+      quantity: product.quantity,
+      productId: product.productId
     }));
   };
 
-  // Extract the orderId
   const extractOrderId = (docId) => {
     if (docId && docId.includes("-")) {
       return docId.split("-")[1];
@@ -85,10 +106,16 @@ const Orders = () => {
     return docId;
   };
 
-  // Handle order click to toggle expanded state
   const handleOrderClick = (orderId) => {
-    setExpandedOrderId((prevId) => (prevId === orderId ? null : orderId));
+    setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  const sortedOrders = [...ordersData].sort((a, b) => 
+    (b.createdAt._seconds || 0) - (a.createdAt._seconds || 0)
+  );
 
   return (
     <div className="h-3/4 lg:h-2/3 overflow-y-auto bg-gray-100 rounded-lg">
@@ -103,16 +130,12 @@ const Orders = () => {
                 onClick={() => handleOrderClick(order.id)}
               >
                 <div className="flex flex-col items-start">
-                  {/* Products images with quantity badges */}
                   <div className="flex space-x-2">
                     {mapOrderItems(order.products).map((item, i) => (
                       <div key={i} className="relative">
-                        {/* Quantity badge */}
                         <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-                          {item.quantity || 1}{" "}
-                          {/* Default quantity if not present */}
+                          {item.quantity || 1}
                         </span>
-                        {/* Product image */}
                         <img
                           src={getImageByName(item.name)}
                           alt={item.name}
@@ -137,7 +160,6 @@ const Orders = () => {
                 </div>
               </div>
 
-              {/* Expanded details section with animation */}
               <div
                 className={`overflow-hidden transition-max-height duration-500 ease-in-out ${
                   expandedOrderId === order.id ? "max-h-96" : "max-h-0"
@@ -147,25 +169,9 @@ const Orders = () => {
                   <div className="bg-gray-50 p-4 mt-2 rounded-md shadow-md">
                     <h3 className="font-semibold text-lg">Order Details</h3>
                     <p>
-                      <strong>Shipping Address:</strong>
-                      {order.address && order.address.fullAddress
-                        ? `${order.address.fullAddress.flatNo}, ${
-                            order.address.fullAddress.addressLine2 ||
-                            "No Address Found"
-                          }, ${
-                            order.address.fullAddress.area || "No Address Found"
-                          }, ${
-                            order.address.fullAddress.city || "No Address Found"
-                          }, ${
-                            order.address.fullAddress.state ||
-                            "No Address Found"
-                          }, ${
-                            order.address.fullAddress.zipCode ||
-                            "No Address Found"
-                          }, ${
-                            order.address.fullAddress.country ||
-                            "No Address Found"
-                          }`
+                      <strong>Shipping Address:</strong>{" "}
+                      {order.address?.fullAddress ? 
+                        `${order.address.fullAddress.flatNo}, ${order.address.fullAddress.area}, ${order.address.fullAddress.city}, ${order.address.fullAddress.state}, ${order.address.fullAddress.zipCode}, ${order.address.fullAddress.country}` 
                         : "No address available"}
                     </p>
                     <p>

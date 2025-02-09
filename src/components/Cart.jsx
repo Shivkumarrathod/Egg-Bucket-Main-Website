@@ -39,10 +39,12 @@ const Cart = ({ toggleCart }) => {
 
         // Check if orders exist and extract the address information
         if (data.orders && Array.isArray(data.orders)) {
+
           const orderAddresses = data.orders
             .map((order) => order?.address?.fullAddress) // Safely access fullAddress
             .filter(Boolean); // Remove undefined or null items
           setAddresses(orderAddresses); // Store only valid addresses
+
         } else {
           console.error("No valid order data found");
         }
@@ -102,7 +104,11 @@ const Cart = ({ toggleCart }) => {
       } else {
         mappedId = item.id; // Use item.id if no mapping exists
       }
-      acc[mappedId] = localQuantities[item.id];
+      acc[mappedId] = {
+        productId: mappedId,
+        name: item.name,
+        quantity: localQuantities[item.id],
+      };
       return acc;
     }, {});
 
@@ -144,6 +150,8 @@ const Cart = ({ toggleCart }) => {
     }
   };
 
+
+
   useEffect(() => {
     // Update localQuantities when cartItems change
     const newLocalQuantities = cartItems.reduce((acc, item) => {
@@ -157,6 +165,8 @@ const Cart = ({ toggleCart }) => {
     (acc, item) => acc + item.price * item.quantity,
     0
   );
+
+
   const shipping = 50; // Flat shipping rate
   const totalPrice = subtotal + shipping;
 
