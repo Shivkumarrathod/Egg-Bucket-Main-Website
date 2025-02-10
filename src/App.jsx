@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "./redux/store";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -19,8 +12,8 @@ import Time from "./pages/Time";
 import Ourfounders from "./pages/OurFounders";
 import FAQ from "./pages/FAQ";
 import Order from "./pages/Order";
-import { SiDotenv } from "react-icons/si";
-import { GrConfigure } from "react-icons/gr";
+// import { SiDotenv } from "react-icons/si";
+// import { GrConfigure } from "react-icons/gr";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchUserData } from "./redux/userSlice";
