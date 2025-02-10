@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import egg6 from "../assets/Images/six.jpg";
 import egg12 from "../assets/Images/twleve.jpg";
 import egg30 from "../assets/Images/thirty.jpg";
+import { fetchOrdersForCustomer } from "../redux/orderSlice";
 
 const Orders = () => {
   const dispatch = useDispatch();
@@ -11,6 +12,13 @@ const Orders = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+
+
+  const ordersError = useSelector((state) => state.orders.error);
+  const ordersLoading = useSelector((state) => state.orders.loading);
+
+  if (ordersLoading) return <p>Loading...</p>;
+  if (ordersError) return <p> {ordersError}</p>;
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -36,7 +44,7 @@ const Orders = () => {
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`${response.status}`);
         }
 
         const data = await response.json();
@@ -60,22 +68,29 @@ const Orders = () => {
     }
   }, [userData]);
 
+  
+
   const getImageByName = (name) => {
-    switch (name.toLowerCase()) {
-      case "6pc_tray":
-      case "e6":
-        return egg6;
-      case "12pc_tray":
-      case "e12":
-        return egg12;
-      case "30pc_tray":
-      case "e30":
-        return egg30;
-      default:
-        console.warn(`Image not found for product: ${name}`);
-        return egg6;
-    }
-  };
+  if (name === undefined || name === null) {  // Check for undefined or null
+    console.warn("Product name is undefined or null. Using default image.");
+    return egg6; // Or another appropriate default image
+  }
+
+  switch (name.toLowerCase()) {
+    case "6pc_tray":
+    case "e6":
+      return egg6;
+    case "12pc_tray":
+    case "e12":
+      return egg12;
+    case "30pc_tray":
+    case "e30":
+      return egg30;
+    default:
+      console.warn(`Image not found for product: ${name}`);
+      return egg6;
+  }
+};
 
   const formatDate = (timestamp) => {
     if (!timestamp?._seconds) return "Invalid date";
@@ -111,7 +126,7 @@ const Orders = () => {
   };
 
   if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (error) return <p>No orders found for you !</p>;
 
   const sortedOrders = [...ordersData].sort((a, b) => 
     (b.createdAt._seconds || 0) - (a.createdAt._seconds || 0)
@@ -131,6 +146,7 @@ const Orders = () => {
               >
                 <div className="flex flex-col items-start">
                   <div className="flex space-x-2">
+
                     {mapOrderItems(order.products).map((item, i) => (
                       <div key={i} className="relative">
                         <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
@@ -142,6 +158,7 @@ const Orders = () => {
                           className="w-14 h-14 object-cover rounded-md"
                         />
                       </div>
+
                     ))}
                   </div>
 

@@ -159,10 +159,10 @@ const Footer = () => {
             {/* Office Address */}
             <div className="mt-6 md:mt-0 md:absolute md:right-32">
               <h4 className="font-semibold mb-4">Office Address</h4>
-              <p>2nd Floor, 34/9A,</p>
-              <p>Hennur Main Rd,</p>
+              <p>1179, A Block,</p>
+              <p>AECS Layout,Singasandra,</p>
               <p>Bengaluru, Karnataka,</p>
-              <p>560043</p>
+              <p>560068</p>
             </div>
           </div>
         </div>

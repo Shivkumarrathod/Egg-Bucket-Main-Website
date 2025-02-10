@@ -26,8 +26,9 @@ const Footer = () => {
             <div className="flex items-center mb-1">
               <FaMapMarkerAlt className="text-[#f87709] mr-2" />
               <p>
-                Kacklewalls Nutrition Pvt. Ltd. ITI Layout, HSR,
-                Bengaluru-560068
+                Kacklewalls Nutrition Pvt. Ltd.  1179, A Block ,AECS Layout
+                
+                Singasandra, Bengaluru, Karnataka 560068
               </p>
             </div>
 

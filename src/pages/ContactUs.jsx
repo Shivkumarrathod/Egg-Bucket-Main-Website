@@ -53,7 +53,7 @@ const ContactUs = () => {
                 Our Office
               </h2>
               <p className="text-sm md:text-base text-gray-600 mt-4">
-                ITI Layout, HSR, Bengaluru-560068
+                1179,A Block,AECS Layout,Singasandra, Bengaluru-560068
               </p>
             </div>
 
