@@ -1,11 +1,7 @@
 {
     "rewrites": [
       {
-        "source": "/order/(.*)", 
-        "destination": "index.html"
-      },
-      {
-        "source": "/(.*)", 
+        "source": "/(.*)",
         "destination": "index.html"
       }
     ],
